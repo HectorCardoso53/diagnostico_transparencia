@@ -1,0 +1,301 @@
+// =============================================================
+//  SISTEMA DE DIAGNÓSTICO DAS SECRETARIAS
+//  Prisma Schema — PostgreSQL
+// =============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================
+//  ENUMS
+// =============================================================
+
+enum Role {
+  SUPER_ADMIN   // acesso total ao sistema
+  ADMIN         // admin municipal
+  SECRETARIO    // gestor da secretaria
+  DIRETOR       // gestor da diretoria
+  OPERADOR      // preenche formulários
+}
+
+enum FormStatus {
+  RASCUNHO      // em edição, não visível aos operadores
+  PUBLICADO     // visível e disponível para resposta
+  ARQUIVADO     // encerrado, somente leitura
+}
+
+enum ResponseStatus {
+  RASCUNHO      // salvo mas não enviado
+  ENVIADO       // submetido pelo operador
+  EM_REVISAO    // em análise pelo diretor/secretario
+  APROVADO      // revisão concluída com aprovação
+  REPROVADO     // devolvido para correção
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  PUBLISH
+  ARCHIVE
+}
+
+// =============================================================
+//  MUNICÍPIO
+// =============================================================
+
+model Municipio {
+  id         String   @id @default(uuid())
+  nome       String
+  uf         String   @db.Char(2)
+  ibge_code  String?  @unique
+  ativo      Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  secretarias Secretaria[]
+
+  @@map("municipios")
+}
+
+// =============================================================
+//  SECRETARIA
+// =============================================================
+
+model Secretaria {
+  id           String   @id @default(uuid())
+  municipio_id String
+  nome         String
+  sigla        String
+  descricao    String?
+  responsavel  String?
+  email        String?
+  telefone     String?
+  ativo        Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  municipio   Municipio    @relation(fields: [municipio_id], references: [id])
+  diretorias  Diretoria[]
+  usuarios    User[]
+  formularios FormSchema[]
+
+  @@map("secretarias")
+}
+
+// =============================================================
+//  DIRETORIA
+// =============================================================
+
+model Diretoria {
+  id            String   @id @default(uuid())
+  secretaria_id String
+  nome          String
+  sigla         String
+  descricao     String?
+  responsavel   String?
+  email         String?
+  ativo         Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  secretaria    Secretaria      @relation(fields: [secretaria_id], references: [id])
+  usuarios      User[]
+  atribuicoes   FormAtribuicao[]
+  respostas     FormResponse[]
+
+  @@map("diretorias")
+}
+
+// =============================================================
+//  USUÁRIO
+// =============================================================
+
+model User {
+  id             String    @id @default(uuid())
+  nome           String
+  email          String    @unique
+  senha_hash     String
+  role           Role      @default(OPERADOR)
+  secretaria_id  String?
+  diretoria_id   String?
+  ativo          Boolean   @default(true)
+  ultimo_login   DateTime?
+  refresh_token  String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  secretaria     Secretaria?      @relation(fields: [secretaria_id], references: [id])
+  diretoria      Diretoria?       @relation(fields: [diretoria_id], references: [id])
+  formularios    FormSchema[]     @relation("FormCriador")
+  respostas      FormResponse[]
+  audit_logs     AuditLog[]
+
+  @@map("users")
+}
+
+// =============================================================
+//  SCHEMA DO FORMULÁRIO (engine dinâmica)
+//
+//  O campo `schema_json` armazena a definição completa dos
+//  campos do formulário no formato:
+//
+//  {
+//    "sections": [
+//      {
+//        "id": "secao_1",
+//        "titulo": "Dados gerais",
+//        "campos": [
+//          {
+//            "id": "campo_nome",
+//            "tipo": "text" | "textarea" | "number" | "date" |
+//                    "select" | "multiselect" | "radio" |
+//                    "checkbox" | "file" | "rating",
+//            "label": "Nome completo",
+//            "placeholder": "...",
+//            "obrigatorio": true,
+//            "opcoes": ["op1", "op2"],   // para select/radio/etc
+//            "validacoes": {
+//              "min": 0, "max": 100,
+//              "minLength": 3, "maxLength": 500,
+//              "pattern": "regex"
+//            },
+//            "condicional": {             // exibe campo se...
+//              "campo_id": "outro_campo",
+//              "valor": "sim"
+//            }
+//          }
+//        ]
+//      }
+//    ]
+//  }
+// =============================================================
+
+model FormSchema {
+  id            String     @id @default(uuid())
+  secretaria_id String
+  criado_por_id String
+  titulo        String
+  descricao     String?
+  schema_json   Json       // definição dinâmica dos campos
+  versao        Int        @default(1)
+  status        FormStatus @default(RASCUNHO)
+  publicado_em  DateTime?
+  arquivado_em  DateTime?
+  prazo_inicio  DateTime?
+  prazo_fim     DateTime?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  secretaria  Secretaria       @relation(fields: [secretaria_id], references: [id])
+  criado_por  User             @relation("FormCriador", fields: [criado_por_id], references: [id])
+  atribuicoes FormAtribuicao[]
+  respostas   FormResponse[]
+  versoes     FormVersao[]
+
+  @@map("form_schemas")
+}
+
+// =============================================================
+//  VERSIONAMENTO DE FORMULÁRIOS
+//  Toda alteração em schema_json gera um snapshot aqui
+// =============================================================
+
+model FormVersao {
+  id         String   @id @default(uuid())
+  form_id    String
+  versao     Int
+  schema_json Json    // snapshot da versão
+  criado_em  DateTime @default(now())
+
+  form FormSchema @relation(fields: [form_id], references: [id])
+
+  @@unique([form_id, versao])
+  @@map("form_versoes")
+}
+
+// =============================================================
+//  ATRIBUIÇÃO DE FORMULÁRIO → DIRETORIA
+//  Um formulário pode ser atribuído a várias diretorias
+// =============================================================
+
+model FormAtribuicao {
+  id           String    @id @default(uuid())
+  form_id      String
+  diretoria_id String
+  prazo        DateTime?
+  obrigatorio  Boolean   @default(true)
+  created_at   DateTime  @default(now())
+
+  form      FormSchema @relation(fields: [form_id], references: [id])
+  diretoria Diretoria  @relation(fields: [diretoria_id], references: [id])
+
+  @@unique([form_id, diretoria_id])
+  @@map("form_atribuicoes")
+}
+
+// =============================================================
+//  RESPOSTA DE FORMULÁRIO
+//
+//  O campo `dados_json` armazena as respostas no formato:
+//  {
+//    "campo_nome": "João Silva",
+//    "campo_data": "2025-01-15",
+//    "campo_avaliacao": 4,
+//    ...
+//  }
+// =============================================================
+
+model FormResponse {
+  id           String         @id @default(uuid())
+  form_id      String
+  diretoria_id String
+  user_id      String
+  dados_json   Json           // respostas preenchidas
+  status       ResponseStatus @default(RASCUNHO)
+  enviado_em   DateTime?
+  revisado_em  DateTime?
+  revisado_por String?
+  observacoes  String?        // feedback do revisor
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+
+  form      FormSchema @relation(fields: [form_id], references: [id])
+  diretoria Diretoria  @relation(fields: [diretoria_id], references: [id])
+  usuario   User       @relation(fields: [user_id], references: [id])
+
+  @@map("form_responses")
+}
+
+// =============================================================
+//  AUDITORIA
+//  Interceptor global do NestJS grava aqui automaticamente
+// =============================================================
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  user_id    String?
+  action     AuditAction
+  entidade   String      // ex: "FormSchema", "User", "Secretaria"
+  entidade_id String?
+  payload    Json?       // dados antes/depois da alteração
+  ip         String?
+  user_agent String?
+  created_at DateTime    @default(now())
+
+  usuario User? @relation(fields: [user_id], references: [id])
+
+  @@index([entidade, entidade_id])
+  @@index([user_id])
+  @@index([created_at])
+  @@map("audit_logs")
+}

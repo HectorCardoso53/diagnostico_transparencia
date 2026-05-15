@@ -1,0 +1,27 @@
+# dependências
+node_modules/
+.npm
+
+# builds
+dist/
+.next/
+out/
+
+# env (NUNCA commitar)
+.env
+*.env
+
+# prisma
+prisma/migrations/*.sql
+
+# logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
