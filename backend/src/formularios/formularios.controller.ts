@@ -89,6 +89,13 @@ export class FormulariosController {
     return this.service.atribuir(id, dto, user);
   }
 
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO)
+  remove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.service.remove(id, user);
+  }
+
   @Delete(':id/atribuicoes/:diretoriaId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO)

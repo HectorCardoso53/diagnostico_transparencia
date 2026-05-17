@@ -20,7 +20,7 @@ interface CurrentUser {
 export class RespostasService {
   constructor(private prisma: PrismaService) {}
 
-  findAll(
+  async findAll(
     filters: {
       form_id?: string;
       diretoria_id?: string;
@@ -30,12 +30,11 @@ export class RespostasService {
   ) {
     const scopedDiretoria = this.getScopedDiretoria(filters.diretoria_id, user);
 
-    return this.prisma.formResponse.findMany({
+    const rows = await this.prisma.formResponse.findMany({
       where: {
         ...(filters.form_id && { form_id: filters.form_id }),
         ...(scopedDiretoria && { diretoria_id: scopedDiretoria }),
         ...(filters.status && { status: filters.status }),
-        // OPERADOR só vê suas próprias respostas
         ...(user.role === Role.OPERADOR && { user_id: user.id }),
       },
       select: {
@@ -50,20 +49,25 @@ export class RespostasService {
       },
       orderBy: { updated_at: 'desc' },
     });
+
+    return rows.map(({ form, ...r }) => ({ ...r, formulario: form }));
   }
 
   async findOne(id: string, user: CurrentUser) {
     const r = await this.prisma.formResponse.findUnique({
       where: { id },
       include: {
-        form: { select: { id: true, titulo: true, schema_json: true } },
+        form: {
+          select: { id: true, titulo: true, descricao: true, schema_json: true },
+        },
         diretoria: { select: { id: true, nome: true } },
         usuario: { select: { id: true, nome: true } },
       },
     });
     if (!r) throw new NotFoundException('Resposta não encontrada');
     this.assertReadAccess(r, user);
-    return r;
+    const { form, ...rest } = r;
+    return { ...rest, formulario: form };
   }
 
   async create(dto: CreateRespostaDto, user: CurrentUser) {
@@ -87,6 +91,15 @@ export class RespostasService {
     if (!atribuicao)
       throw new BadRequestException(
         'Formulário não atribuído a esta diretoria',
+      );
+
+    // Impede duplicata: cada diretoria só pode ter uma resposta por formulário
+    const existente = await this.prisma.formResponse.findFirst({
+      where: { form_id: dto.form_id, diretoria_id: dto.diretoria_id },
+    });
+    if (existente)
+      throw new BadRequestException(
+        'Já existe uma resposta para este formulário nesta diretoria',
       );
 
     // OPERADOR e DIRETOR só podem criar respostas para sua própria diretoria

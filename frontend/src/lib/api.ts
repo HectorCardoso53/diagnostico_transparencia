@@ -1,30 +1,24 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost/api'
 
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('access_token')
+// Access token kept in memory — invisible to XSS scripts, recovered via cookie on page reload
+let memoryToken: string | null = null
+
+export function setToken(token: string | null) {
+  memoryToken = token
 }
 
-function getRefreshToken(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('refresh_token')
+export function getToken(): string | null {
+  return memoryToken
 }
 
 async function tryRefresh(): Promise<boolean> {
-  const userId = localStorage.getItem('user_id')
-  const refreshToken = getRefreshToken()
-  if (!userId || !refreshToken) return false
-
   const res = await fetch(`${API_URL}/auth/refresh`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId, refresh_token: refreshToken }),
+    credentials: 'include',
   })
   if (!res.ok) return false
-
   const data = await res.json()
-  localStorage.setItem('access_token', data.access_token)
-  localStorage.setItem('refresh_token', data.refresh_token)
+  memoryToken = data.access_token as string
   return true
 }
 
@@ -33,19 +27,23 @@ async function request<T>(
   options: RequestInit = {},
   retry = true,
 ): Promise<T> {
-  const token = getToken()
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(memoryToken ? { Authorization: `Bearer ${memoryToken}` } : {}),
     ...(options.headers ?? {}),
   }
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers })
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers,
+    credentials: 'include',
+  })
 
   if (res.status === 401 && retry) {
     const refreshed = await tryRefresh()
     if (refreshed) return request<T>(path, options, false)
-    localStorage.clear()
+    memoryToken = null
+    localStorage.removeItem('user')
     document.cookie = 'is_auth=; Max-Age=0; path=/'
     window.location.href = '/login'
     throw new Error('Sessão expirada')

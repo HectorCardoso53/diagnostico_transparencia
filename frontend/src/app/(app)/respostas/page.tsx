@@ -7,16 +7,15 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface Resposta {
   id: string
   status: string
   enviado_em: string | null
-  revisado_em: string | null
   created_at: string
   formulario: { titulo: string } | null
   diretoria: { nome: string } | null
@@ -24,12 +23,31 @@ interface Resposta {
   revisado_por_usuario: { nome: string } | null
 }
 
+interface Formulario {
+  id: string
+  titulo: string
+  status: string
+}
+
+interface Diretoria {
+  id: string
+  nome: string
+  secretaria?: { nome: string }
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  RASCUNHO: 'Rascunho', ENVIADO: 'Enviado', APROVADO: 'Aprovado',
+  REPROVADO: 'Reprovado', EM_REVISAO: 'Em revisão',
+}
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'success' | 'destructive'> = {
-  RASCUNHO: 'secondary', ENVIADO: 'default', APROVADO: 'success', REPROVADO: 'destructive', EM_REVISAO: 'default',
+  RASCUNHO: 'secondary', ENVIADO: 'default', APROVADO: 'success',
+  REPROVADO: 'destructive', EM_REVISAO: 'default',
 }
 
 export default function RespostasPage() {
   const [items, setItems] = useState<Resposta[]>([])
+  const [formularios, setFormularios] = useState<Formulario[]>([])
+  const [diretorias, setDiretorias] = useState<Diretoria[]>([])
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ form_id: '', diretoria_id: '' })
   const [saving, setSaving] = useState(false)
@@ -40,12 +58,20 @@ export default function RespostasPage() {
 
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    api.get<Formulario[]>('/formularios').then((list) =>
+      setFormularios(list.filter((f) => f.status === 'PUBLICADO'))
+    ).catch(() => {})
+    api.get<Diretoria[]>('/diretorias').then(setDiretorias).catch(() => {})
+  }, [])
+
   async function create() {
     setSaving(true)
     try {
       await api.post('/respostas', { form_id: form.form_id, diretoria_id: form.diretoria_id, dados_json: {} })
       toast.success('Rascunho criado')
       setOpen(false)
+      setForm({ form_id: '', diretoria_id: '' })
       load()
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro')
@@ -59,10 +85,10 @@ export default function RespostasPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Respostas</h1>
-          <p className="text-sm text-muted-foreground mt-1">{items.length} registros</p>
+          <p className="text-sm text-muted-foreground mt-1">{items.length} resposta{items.length !== 1 ? 's' : ''}</p>
         </div>
         <Button onClick={() => { setForm({ form_id: '', diretoria_id: '' }); setOpen(true) }} size="sm">
-          <Plus className="h-4 w-4 mr-1" />Nova
+          <Plus className="h-4 w-4 mr-1" />Nova resposta
         </Button>
       </div>
 
@@ -70,7 +96,7 @@ export default function RespostasPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              {['Formulário', 'Diretoria', 'Usuário', 'Status', 'Enviado em', 'Revisado por', 'Criado em', 'Ações'].map((h) => (
+              {['Formulário', 'Diretoria', 'Usuário', 'Status', 'Enviado em', 'Revisado por', 'Criado em', ''].map((h) => (
                 <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
               ))}
             </tr>
@@ -81,7 +107,11 @@ export default function RespostasPage() {
                 <td className="px-4 py-3 font-medium">{r.formulario?.titulo ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{r.diretoria?.nome ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{r.usuario?.nome ?? '—'}</td>
-                <td className="px-4 py-3"><Badge variant={STATUS_VARIANT[r.status] ?? 'secondary'}>{r.status}</Badge></td>
+                <td className="px-4 py-3">
+                  <Badge variant={STATUS_VARIANT[r.status] ?? 'secondary'}>
+                    {STATUS_LABEL[r.status] ?? r.status}
+                  </Badge>
+                </td>
                 <td className="px-4 py-3 text-muted-foreground">{r.enviado_em ? formatDate(r.enviado_em) : '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{r.revisado_por_usuario?.nome ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(r.created_at)}</td>
@@ -92,7 +122,13 @@ export default function RespostasPage() {
                 </td>
               </tr>
             ))}
-            {items.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Nenhuma resposta encontrada</td></tr>}
+            {items.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
+                  Nenhuma resposta encontrada
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -102,17 +138,42 @@ export default function RespostasPage() {
           <DialogHeader><DialogTitle>Nova Resposta</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
-              <Label>ID do Formulário *</Label>
-              <Input value={form.form_id} onChange={(e) => setForm({ ...form, form_id: e.target.value })} placeholder="UUID do formulário publicado" />
+              <Label>Formulário *</Label>
+              <Select value={form.form_id} onValueChange={(v) => setForm({ ...form, form_id: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um formulário publicado..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {formularios.length === 0 && (
+                    <SelectItem value="__none__" disabled>Nenhum formulário publicado</SelectItem>
+                  )}
+                  {formularios.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>{f.titulo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>ID da Diretoria *</Label>
-              <Input value={form.diretoria_id} onChange={(e) => setForm({ ...form, diretoria_id: e.target.value })} placeholder="UUID da diretoria" />
+              <Label>Diretoria *</Label>
+              <Select value={form.diretoria_id} onValueChange={(v) => setForm({ ...form, diretoria_id: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma diretoria..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {diretorias.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.nome}{d.secretaria ? ` — ${d.secretaria.nome}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={create} disabled={saving}>{saving ? 'Criando...' : 'Criar Rascunho'}</Button>
+            <Button onClick={create} disabled={saving || !form.form_id || !form.diretoria_id}>
+              {saving ? 'Criando...' : 'Criar rascunho'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

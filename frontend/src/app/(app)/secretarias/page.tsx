@@ -22,7 +22,7 @@ interface Secretaria {
   municipio: { nome: string; uf: string } | null
 }
 
-const empty = { municipio_id: '', nome: '', sigla: '', responsavel: '', email: '', telefone: '' }
+const empty = { nome: '', sigla: '', responsavel: '', email: '', telefone: '' }
 
 export default function SecretariasPage() {
   const [items, setItems] = useState<Secretaria[]>([])
@@ -33,7 +33,9 @@ export default function SecretariasPage() {
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(() => {
-    api.get<Secretaria[]>(`/secretarias${search ? `?nome=${search}` : ''}`)
+    const q = new URLSearchParams({ ativo: 'true' })
+    if (search) q.set('nome', search)
+    api.get<Secretaria[]>(`/secretarias?${q}`)
       .then(setItems)
       .catch(() => toast.error('Erro ao carregar secretarias'))
   }, [search])
@@ -43,7 +45,7 @@ export default function SecretariasPage() {
   function openCreate() { setEditing(null); setForm(empty); setOpen(true) }
   function openEdit(s: Secretaria) {
     setEditing(s)
-    setForm({ municipio_id: '', nome: s.nome, sigla: s.sigla, responsavel: s.responsavel ?? '', email: s.email ?? '', telefone: '' })
+    setForm({ nome: s.nome, sigla: s.sigla, responsavel: s.responsavel ?? '', email: s.email ?? '', telefone: '' })
     setOpen(true)
   }
 
@@ -51,7 +53,8 @@ export default function SecretariasPage() {
     setSaving(true)
     try {
       if (editing) {
-        await api.patch(`/secretarias/${editing.id}`, form)
+        const payload = Object.fromEntries(Object.entries(form).filter(([, v]) => v !== ''))
+        await api.patch(`/secretarias/${editing.id}`, payload)
         toast.success('Secretaria atualizada')
       } else {
         await api.post('/secretarias', form)
@@ -127,10 +130,9 @@ export default function SecretariasPage() {
           <DialogHeader><DialogTitle>{editing ? 'Editar Secretaria' : 'Nova Secretaria'}</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
             {!editing && (
-              <div className="space-y-1.5">
-                <Label>ID do Município</Label>
-                <Input value={form.municipio_id} onChange={(e) => setForm({ ...form, municipio_id: e.target.value })} placeholder="UUID do município" />
-              </div>
+              <p className="text-xs text-muted-foreground bg-muted px-3 py-2 rounded-md">
+                Município: <strong>Oriximiná — PA</strong>
+              </p>
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">

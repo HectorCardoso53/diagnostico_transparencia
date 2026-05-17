@@ -8,13 +8,18 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Diagnóstico de Transparência',
+  title: 'Sistema de Diagnóstico',
   description: 'Sistema de diagnóstico das secretarias municipais',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <head>
+        <link rel="icon" href="/img/prefeitura.png" type="image/png" sizes="32x32" />
+        <link rel="shortcut icon" href="/img/prefeitura.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/img/prefeitura.png" />
+      </head>
       <body className="min-h-screen antialiased">
         <AuthProvider>
           {children}

@@ -36,13 +36,24 @@ export class AuthService {
         nome: user.nome,
         email: user.email,
         role: user.role,
+        secretaria_id: user.secretaria_id,
+        diretoria_id: user.diretoria_id,
       },
     };
   }
 
-  async refresh(userId: string, refreshToken: string) {
+  async refresh(refreshToken: string) {
+    let payload: { sub: string };
+    try {
+      payload = await this.jwt.verifyAsync<{ sub: string }>(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+    } catch {
+      throw new UnauthorizedException();
+    }
+
     const user = await this.prisma.user.findUnique({
-      where: { id: userId, ativo: true },
+      where: { id: payload.sub, ativo: true },
     });
 
     if (!user?.refresh_token) throw new UnauthorizedException();

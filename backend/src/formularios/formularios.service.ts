@@ -45,6 +45,16 @@ export class FormulariosService {
         created_at: true,
         secretaria: { select: { id: true, nome: true } },
         criado_por: { select: { id: true, nome: true } },
+        atribuicoes: {
+          select: {
+            diretoria: { select: { id: true, nome: true } },
+            prazo: true,
+            obrigatorio: true,
+          },
+        },
+        respostas: {
+          select: { id: true, status: true, diretoria_id: true },
+        },
         _count: { select: { atribuicoes: true, respostas: true } },
       },
       orderBy: { created_at: 'desc' },
@@ -102,10 +112,8 @@ export class FormulariosService {
     const form = await this.assertExists(id);
     this.assertSecretariaAccess(form.secretaria_id, user);
 
-    if (form.status !== FormStatus.RASCUNHO)
-      throw new BadRequestException(
-        'Apenas formulários em rascunho podem ser editados',
-      );
+    if (form.status === FormStatus.ARQUIVADO)
+      throw new BadRequestException('Formulários arquivados não podem ser editados');
 
     const novaVersao = dto.schema_json ? form.versao + 1 : form.versao;
 
@@ -177,11 +185,6 @@ export class FormulariosService {
     const form = await this.assertExists(id);
     this.assertSecretariaAccess(form.secretaria_id, user);
 
-    if (form.status !== FormStatus.PUBLICADO)
-      throw new BadRequestException(
-        'Somente formulários publicados podem ser atribuídos',
-      );
-
     return this.prisma.formAtribuicao.upsert({
       where: { form_id_diretoria_id: { form_id: id, diretoria_id: dto.diretoria_id } },
       update: {
@@ -209,6 +212,17 @@ export class FormulariosService {
     return this.prisma.formAtribuicao.delete({
       where: { form_id_diretoria_id: { form_id: formId, diretoria_id: diretoriaId } },
     });
+  }
+
+  async remove(id: string, user: CurrentUser) {
+    const form = await this.assertExists(id);
+    this.assertSecretariaAccess(form.secretaria_id, user);
+
+    // Cascade: remove dependências antes de deletar o formulário
+    await this.prisma.formAtribuicao.deleteMany({ where: { form_id: id } });
+    await this.prisma.formResponse.deleteMany({ where: { form_id: id } });
+    await this.prisma.formVersao.deleteMany({ where: { form_id: id } });
+    await this.prisma.formSchema.delete({ where: { id } });
   }
 
   private async assertExists(id: string) {

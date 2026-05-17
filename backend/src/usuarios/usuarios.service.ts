@@ -87,13 +87,20 @@ export class UsuariosService {
   async create(dto: CreateUsuarioDto, currentUser: CurrentUser) {
     this.assertCanManageRole(dto.role, currentUser);
 
-    const exists = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (exists) throw new ConflictException('E-mail já cadastrado');
-
     const { senha, ...rest } = dto;
     const senha_hash = await bcrypt.hash(senha, 12);
+
+    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+
+    if (existing) {
+      if (existing.ativo) throw new ConflictException('E-mail já cadastrado');
+      // Reativa usuário inativo com os novos dados
+      return this.prisma.user.update({
+        where: { id: existing.id },
+        data: { ...rest, senha_hash, ativo: true, refresh_token: null },
+        select: { id: true, nome: true, email: true, role: true, created_at: true },
+      });
+    }
 
     return this.prisma.user.create({
       data: { ...rest, senha_hash },
@@ -140,6 +147,7 @@ export class UsuariosService {
 
   private assertCanManageRole(role: Role | undefined, user: CurrentUser) {
     if (!role) return;
+    if (user.role === Role.SUPER_ADMIN) return; // SUPER_ADMIN pode atribuir qualquer role
     const hierarchy: Record<Role, number> = {
       [Role.SUPER_ADMIN]: 5,
       [Role.ADMIN]: 4,

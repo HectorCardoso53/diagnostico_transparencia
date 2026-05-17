@@ -53,7 +53,16 @@ export class SecretariasService {
   }
 
   async create(dto: CreateSecretariaDto) {
-    return this.prisma.secretaria.create({ data: dto });
+    // Município fixo: Oriximiná - PA
+    const municipio = await this.prisma.municipio.findFirst({
+      where: { ibge_code: '1505304' },
+    });
+    if (!municipio) throw new Error('Município Oriximiná-PA não encontrado no banco');
+
+    const { municipio_id: _id, municipio_nome: _n, municipio_uf: _u, ...rest } = dto;
+    return this.prisma.secretaria.create({
+      data: { ...rest, municipio_id: municipio.id },
+    });
   }
 
   async update(id: string, dto: UpdateSecretariaDto, user: CurrentUser) {

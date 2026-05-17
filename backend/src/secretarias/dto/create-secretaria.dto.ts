@@ -1,8 +1,19 @@
-import { IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEmail, IsOptional, IsString, IsUUID, Length } from 'class-validator';
 
 export class CreateSecretariaDto {
   @IsUUID()
-  municipio_id: string;
+  @IsOptional()
+  municipio_id?: string;
+
+  // Alternativa: informar nome + UF para criar/encontrar município automaticamente
+  @IsString()
+  @IsOptional()
+  municipio_nome?: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(2, 2)
+  municipio_uf?: string;
 
   @IsString()
   nome: string;
