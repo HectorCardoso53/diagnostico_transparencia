@@ -16,9 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
-        <link rel="icon" href="/img/prefeitura.png" type="image/png" sizes="32x32" />
-        <link rel="shortcut icon" href="/img/prefeitura.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/img/prefeitura.png" />
+        <link rel="icon" type="image/png" href="/img/prefeitura.png" />
       </head>
       <body className="min-h-screen antialiased">
         <AuthProvider>
