@@ -21,8 +21,8 @@ const COOKIE_PATH = '/api/auth';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  secure: process.env.COOKIE_SECURE === 'true',
+  sameSite: 'lax' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000,
   path: COOKIE_PATH,
 };
