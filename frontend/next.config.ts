@@ -1,11 +1,10 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins: ['212.85.0.221'],
-  devIndicators: false,
 }
 
 export default nextConfig
