@@ -1,9 +1,9 @@
-import { defineConfig } from 'prisma/config';
 import { config } from 'dotenv';
 
 config();
 
-export default defineConfig({
+// defineConfig omitido: é apenas um type helper — objeto direto é equivalente
+export default {
   schema: 'prisma/schema.prisma',
   datasource: {
     url: process.env.DATABASE_URL as string,
@@ -11,4 +11,4 @@ export default defineConfig({
   migrations: {
     seed: 'ts-node prisma/seed.ts',
   },
-});
+};
