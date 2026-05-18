@@ -16,12 +16,12 @@ async function main() {
 
   // ── Município ──────────────────────────────────────────────
   const municipio = await prisma.municipio.upsert({
-    where: { ibge_code: '1500602' },
+    where: { ibge_code: '1505304' },
     update: {},
     create: {
-      nome: 'Município Exemplo',
+      nome: 'Oriximiná',
       uf: 'PA',
-      ibge_code: '1500602',
+      ibge_code: '1505304',
     },
   });
   console.log('✅ Município criado:', municipio.nome);
