@@ -1135,6 +1135,7 @@ export const SecretariaScalarFieldEnum = {
   municipio_id: 'municipio_id',
   nome: 'nome',
   sigla: 'sigla',
+  tipo: 'tipo',
   descricao: 'descricao',
   responsavel: 'responsavel',
   email: 'email',
@@ -1343,6 +1344,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OrgaoTipo'
+ */
+export type EnumOrgaoTipoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgaoTipo'>
+    
+
+
+/**
+ * Reference to a field of type 'OrgaoTipo[]'
+ */
+export type ListEnumOrgaoTipoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrgaoTipo[]'>
     
 
 

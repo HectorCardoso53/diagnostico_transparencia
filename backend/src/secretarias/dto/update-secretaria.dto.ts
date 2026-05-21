@@ -1,4 +1,5 @@
-import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { OrgaoTipo } from '../../generated/prisma/enums';
 
 export class UpdateSecretariaDto {
   @IsString()
@@ -8,6 +9,10 @@ export class UpdateSecretariaDto {
   @IsString()
   @IsOptional()
   sigla?: string;
+
+  @IsEnum(OrgaoTipo)
+  @IsOptional()
+  tipo?: OrgaoTipo;
 
   @IsString()
   @IsOptional()

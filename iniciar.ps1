@@ -96,6 +96,25 @@ Write-OK "PostgreSQL esta aceitando conexoes."
 # =============================================================
 Write-Step "Aplicando migrations do Prisma..."
 
+# Carrega variaveis do .env raiz (se existir)
+$envFile = Join-Path $Root ".env"
+$pgDb   = "diagnostico"
+$pgUser = "postgres"
+$pgPass = "postgres"
+
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        if ($_ -match '^\s*([^#][^=]+)=(.*)$') {
+            $k = $Matches[1].Trim(); $v = $Matches[2].Trim()
+            if ($k -eq "POSTGRES_DB")       { $pgDb   = $v }
+            if ($k -eq "POSTGRES_USER")     { $pgUser = $v }
+            if ($k -eq "POSTGRES_PASSWORD") { $pgPass = $v }
+        }
+    }
+}
+
+$env:DATABASE_URL = "postgresql://${pgUser}:${pgPass}@localhost:5432/${pgDb}?schema=public"
+
 Set-Location $Backend
 $migrateOut = npx prisma migrate deploy 2>&1
 if ($LASTEXITCODE -ne 0) {

@@ -10,11 +10,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+type OrgaoTipo = 'SECRETARIA' | 'PGM' | 'GABINETE'
 
 interface Secretaria {
   id: string
   nome: string
   sigla: string
+  tipo: OrgaoTipo
   responsavel: string | null
   email: string | null
   ativo: boolean
@@ -22,7 +26,19 @@ interface Secretaria {
   municipio: { nome: string; uf: string } | null
 }
 
-const empty = { nome: '', sigla: '', responsavel: '', email: '', telefone: '' }
+const TIPO_LABEL: Record<OrgaoTipo, string> = {
+  SECRETARIA: 'Secretaria',
+  PGM: 'Procuradoria (PGM)',
+  GABINETE: 'Gabinete',
+}
+
+const TIPO_VARIANT: Record<OrgaoTipo, 'default' | 'secondary' | 'outline'> = {
+  SECRETARIA: 'default',
+  PGM: 'secondary',
+  GABINETE: 'outline',
+}
+
+const empty = { nome: '', sigla: '', tipo: 'SECRETARIA' as OrgaoTipo, responsavel: '', email: '', telefone: '' }
 
 export default function SecretariasPage() {
   const [items, setItems] = useState<Secretaria[]>([])
@@ -45,7 +61,7 @@ export default function SecretariasPage() {
   function openCreate() { setEditing(null); setForm(empty); setOpen(true) }
   function openEdit(s: Secretaria) {
     setEditing(s)
-    setForm({ nome: s.nome, sigla: s.sigla, responsavel: s.responsavel ?? '', email: s.email ?? '', telefone: '' })
+    setForm({ nome: s.nome, sigla: s.sigla, tipo: s.tipo, responsavel: s.responsavel ?? '', email: s.email ?? '', telefone: '' })
     setOpen(true)
   }
 
@@ -83,10 +99,10 @@ export default function SecretariasPage() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Secretarias</h1>
+          <h1 className="text-2xl font-bold">Órgãos Municipais</h1>
           <p className="text-sm text-muted-foreground mt-1">{items.length} registros</p>
         </div>
-        <Button onClick={openCreate} size="sm"><Plus className="h-4 w-4 mr-1" />Nova</Button>
+        <Button onClick={openCreate} size="sm"><Plus className="h-4 w-4 mr-1" />Novo</Button>
       </div>
 
       <Input placeholder="Buscar por nome..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
@@ -95,7 +111,7 @@ export default function SecretariasPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              {['Nome', 'Sigla', 'Responsável', 'Status', 'Criado em', 'Ações'].map((h) => (
+              {['Nome', 'Sigla', 'Tipo', 'Responsável', 'Status', 'Criado em', 'Ações'].map((h) => (
                 <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
               ))}
             </tr>
@@ -105,6 +121,11 @@ export default function SecretariasPage() {
               <tr key={s.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3 font-medium">{s.nome}</td>
                 <td className="px-4 py-3">{s.sigla}</td>
+                <td className="px-4 py-3">
+                  <Badge variant={TIPO_VARIANT[s.tipo ?? 'SECRETARIA']}>
+                    {TIPO_LABEL[s.tipo ?? 'SECRETARIA']}
+                  </Badge>
+                </td>
                 <td className="px-4 py-3 text-muted-foreground">{s.responsavel ?? '—'}</td>
                 <td className="px-4 py-3">
                   <Badge variant={s.ativo ? 'success' : 'secondary'}>{s.ativo ? 'Ativo' : 'Inativo'}</Badge>
@@ -119,7 +140,7 @@ export default function SecretariasPage() {
               </tr>
             ))}
             {items.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Nenhuma secretaria encontrada</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Nenhum órgão encontrado</td></tr>
             )}
           </tbody>
         </table>
@@ -127,7 +148,7 @@ export default function SecretariasPage() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editing ? 'Editar Secretaria' : 'Nova Secretaria'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? 'Editar Órgão' : 'Novo Órgão'}</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
             {!editing && (
               <p className="text-xs text-muted-foreground bg-muted px-3 py-2 rounded-md">
@@ -143,6 +164,19 @@ export default function SecretariasPage() {
                 <Label>Sigla *</Label>
                 <Input value={form.sigla} onChange={(e) => setForm({ ...form, sigla: e.target.value })} />
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo *</Label>
+              <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v as OrgaoTipo })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SECRETARIA">Secretaria</SelectItem>
+                  <SelectItem value="PGM">Procuradoria Geral do Município (PGM)</SelectItem>
+                  <SelectItem value="GABINETE">Gabinete</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Responsável</Label>

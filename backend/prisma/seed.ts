@@ -4,7 +4,7 @@
 // =============================================================
 
 import { PrismaClient } from '../src/generated/prisma/client';
-import { Role } from '../src/generated/prisma/enums';
+import { OrgaoTipo, Role } from '../src/generated/prisma/enums';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 
@@ -32,6 +32,7 @@ async function main() {
       municipio_id: municipio.id,
       nome: 'Secretaria Municipal de Saúde',
       sigla: 'SEMSAU',
+      tipo: OrgaoTipo.SECRETARIA,
     },
   });
 
@@ -40,9 +41,19 @@ async function main() {
       municipio_id: municipio.id,
       nome: 'Secretaria Municipal de Educação',
       sigla: 'SEMED',
+      tipo: OrgaoTipo.SECRETARIA,
     },
   });
-  console.log('✅ Secretarias criadas');
+
+  await prisma.secretaria.create({
+    data: {
+      municipio_id: municipio.id,
+      nome: 'Procuradoria Geral do Município',
+      sigla: 'PGM',
+      tipo: OrgaoTipo.PGM,
+    },
+  });
+  console.log('✅ Secretarias + PGM criadas');
 
   // ── Diretorias ─────────────────────────────────────────────
   const dirAtencaoBasica = await prisma.diretoria.create({

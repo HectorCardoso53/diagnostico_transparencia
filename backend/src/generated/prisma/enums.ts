@@ -40,6 +40,15 @@ export const ResponseStatus = {
 export type ResponseStatus = (typeof ResponseStatus)[keyof typeof ResponseStatus]
 
 
+export const OrgaoTipo = {
+  SECRETARIA: 'SECRETARIA',
+  PGM: 'PGM',
+  GABINETE: 'GABINETE'
+} as const
+
+export type OrgaoTipo = (typeof OrgaoTipo)[keyof typeof OrgaoTipo]
+
+
 export const AuditAction = {
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',

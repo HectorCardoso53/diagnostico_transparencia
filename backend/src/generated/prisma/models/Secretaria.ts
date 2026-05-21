@@ -29,6 +29,7 @@ export type SecretariaMinAggregateOutputType = {
   municipio_id: string | null
   nome: string | null
   sigla: string | null
+  tipo: $Enums.OrgaoTipo | null
   descricao: string | null
   responsavel: string | null
   email: string | null
@@ -43,6 +44,7 @@ export type SecretariaMaxAggregateOutputType = {
   municipio_id: string | null
   nome: string | null
   sigla: string | null
+  tipo: $Enums.OrgaoTipo | null
   descricao: string | null
   responsavel: string | null
   email: string | null
@@ -57,6 +59,7 @@ export type SecretariaCountAggregateOutputType = {
   municipio_id: number
   nome: number
   sigla: number
+  tipo: number
   descricao: number
   responsavel: number
   email: number
@@ -73,6 +76,7 @@ export type SecretariaMinAggregateInputType = {
   municipio_id?: true
   nome?: true
   sigla?: true
+  tipo?: true
   descricao?: true
   responsavel?: true
   email?: true
@@ -87,6 +91,7 @@ export type SecretariaMaxAggregateInputType = {
   municipio_id?: true
   nome?: true
   sigla?: true
+  tipo?: true
   descricao?: true
   responsavel?: true
   email?: true
@@ -101,6 +106,7 @@ export type SecretariaCountAggregateInputType = {
   municipio_id?: true
   nome?: true
   sigla?: true
+  tipo?: true
   descricao?: true
   responsavel?: true
   email?: true
@@ -188,6 +194,7 @@ export type SecretariaGroupByOutputType = {
   municipio_id: string
   nome: string
   sigla: string
+  tipo: $Enums.OrgaoTipo
   descricao: string | null
   responsavel: string | null
   email: string | null
@@ -223,6 +230,7 @@ export type SecretariaWhereInput = {
   municipio_id?: Prisma.StringFilter<"Secretaria"> | string
   nome?: Prisma.StringFilter<"Secretaria"> | string
   sigla?: Prisma.StringFilter<"Secretaria"> | string
+  tipo?: Prisma.EnumOrgaoTipoFilter<"Secretaria"> | $Enums.OrgaoTipo
   descricao?: Prisma.StringNullableFilter<"Secretaria"> | string | null
   responsavel?: Prisma.StringNullableFilter<"Secretaria"> | string | null
   email?: Prisma.StringNullableFilter<"Secretaria"> | string | null
@@ -241,6 +249,7 @@ export type SecretariaOrderByWithRelationInput = {
   municipio_id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
+  tipo?: Prisma.SortOrder
   descricao?: Prisma.SortOrderInput | Prisma.SortOrder
   responsavel?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -262,6 +271,7 @@ export type SecretariaWhereUniqueInput = Prisma.AtLeast<{
   municipio_id?: Prisma.StringFilter<"Secretaria"> | string
   nome?: Prisma.StringFilter<"Secretaria"> | string
   sigla?: Prisma.StringFilter<"Secretaria"> | string
+  tipo?: Prisma.EnumOrgaoTipoFilter<"Secretaria"> | $Enums.OrgaoTipo
   descricao?: Prisma.StringNullableFilter<"Secretaria"> | string | null
   responsavel?: Prisma.StringNullableFilter<"Secretaria"> | string | null
   email?: Prisma.StringNullableFilter<"Secretaria"> | string | null
@@ -280,6 +290,7 @@ export type SecretariaOrderByWithAggregationInput = {
   municipio_id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
+  tipo?: Prisma.SortOrder
   descricao?: Prisma.SortOrderInput | Prisma.SortOrder
   responsavel?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -300,6 +311,7 @@ export type SecretariaScalarWhereWithAggregatesInput = {
   municipio_id?: Prisma.StringWithAggregatesFilter<"Secretaria"> | string
   nome?: Prisma.StringWithAggregatesFilter<"Secretaria"> | string
   sigla?: Prisma.StringWithAggregatesFilter<"Secretaria"> | string
+  tipo?: Prisma.EnumOrgaoTipoWithAggregatesFilter<"Secretaria"> | $Enums.OrgaoTipo
   descricao?: Prisma.StringNullableWithAggregatesFilter<"Secretaria"> | string | null
   responsavel?: Prisma.StringNullableWithAggregatesFilter<"Secretaria"> | string | null
   email?: Prisma.StringNullableWithAggregatesFilter<"Secretaria"> | string | null
@@ -313,6 +325,7 @@ export type SecretariaCreateInput = {
   id?: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -331,6 +344,7 @@ export type SecretariaUncheckedCreateInput = {
   municipio_id: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -347,6 +361,7 @@ export type SecretariaUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -365,6 +380,7 @@ export type SecretariaUncheckedUpdateInput = {
   municipio_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -382,6 +398,7 @@ export type SecretariaCreateManyInput = {
   municipio_id: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -395,6 +412,7 @@ export type SecretariaUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -409,6 +427,7 @@ export type SecretariaUncheckedUpdateManyInput = {
   municipio_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -433,6 +452,7 @@ export type SecretariaCountOrderByAggregateInput = {
   municipio_id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
+  tipo?: Prisma.SortOrder
   descricao?: Prisma.SortOrder
   responsavel?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -447,6 +467,7 @@ export type SecretariaMaxOrderByAggregateInput = {
   municipio_id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
+  tipo?: Prisma.SortOrder
   descricao?: Prisma.SortOrder
   responsavel?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -461,6 +482,7 @@ export type SecretariaMinOrderByAggregateInput = {
   municipio_id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
+  tipo?: Prisma.SortOrder
   descricao?: Prisma.SortOrder
   responsavel?: Prisma.SortOrder
   email?: Prisma.SortOrder
@@ -522,6 +544,10 @@ export type SecretariaUncheckedUpdateManyWithoutMunicipioNestedInput = {
   deleteMany?: Prisma.SecretariaScalarWhereInput | Prisma.SecretariaScalarWhereInput[]
 }
 
+export type EnumOrgaoTipoFieldUpdateOperationsInput = {
+  set?: $Enums.OrgaoTipo
+}
+
 export type SecretariaCreateNestedOneWithoutDiretoriasInput = {
   create?: Prisma.XOR<Prisma.SecretariaCreateWithoutDiretoriasInput, Prisma.SecretariaUncheckedCreateWithoutDiretoriasInput>
   connectOrCreate?: Prisma.SecretariaCreateOrConnectWithoutDiretoriasInput
@@ -570,6 +596,7 @@ export type SecretariaCreateWithoutMunicipioInput = {
   id?: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -586,6 +613,7 @@ export type SecretariaUncheckedCreateWithoutMunicipioInput = {
   id?: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -632,6 +660,7 @@ export type SecretariaScalarWhereInput = {
   municipio_id?: Prisma.StringFilter<"Secretaria"> | string
   nome?: Prisma.StringFilter<"Secretaria"> | string
   sigla?: Prisma.StringFilter<"Secretaria"> | string
+  tipo?: Prisma.EnumOrgaoTipoFilter<"Secretaria"> | $Enums.OrgaoTipo
   descricao?: Prisma.StringNullableFilter<"Secretaria"> | string | null
   responsavel?: Prisma.StringNullableFilter<"Secretaria"> | string | null
   email?: Prisma.StringNullableFilter<"Secretaria"> | string | null
@@ -645,6 +674,7 @@ export type SecretariaCreateWithoutDiretoriasInput = {
   id?: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -662,6 +692,7 @@ export type SecretariaUncheckedCreateWithoutDiretoriasInput = {
   municipio_id: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -693,6 +724,7 @@ export type SecretariaUpdateWithoutDiretoriasInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -710,6 +742,7 @@ export type SecretariaUncheckedUpdateWithoutDiretoriasInput = {
   municipio_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -725,6 +758,7 @@ export type SecretariaCreateWithoutUsuariosInput = {
   id?: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -742,6 +776,7 @@ export type SecretariaUncheckedCreateWithoutUsuariosInput = {
   municipio_id: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -773,6 +808,7 @@ export type SecretariaUpdateWithoutUsuariosInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -790,6 +826,7 @@ export type SecretariaUncheckedUpdateWithoutUsuariosInput = {
   municipio_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -805,6 +842,7 @@ export type SecretariaCreateWithoutFormulariosInput = {
   id?: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -822,6 +860,7 @@ export type SecretariaUncheckedCreateWithoutFormulariosInput = {
   municipio_id: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -853,6 +892,7 @@ export type SecretariaUpdateWithoutFormulariosInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -870,6 +910,7 @@ export type SecretariaUncheckedUpdateWithoutFormulariosInput = {
   municipio_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -885,6 +926,7 @@ export type SecretariaCreateManyMunicipioInput = {
   id?: string
   nome: string
   sigla: string
+  tipo?: $Enums.OrgaoTipo
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -898,6 +940,7 @@ export type SecretariaUpdateWithoutMunicipioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -914,6 +957,7 @@ export type SecretariaUncheckedUpdateWithoutMunicipioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -930,6 +974,7 @@ export type SecretariaUncheckedUpdateManyWithoutMunicipioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  tipo?: Prisma.EnumOrgaoTipoFieldUpdateOperationsInput | $Enums.OrgaoTipo
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -993,6 +1038,7 @@ export type SecretariaSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   municipio_id?: boolean
   nome?: boolean
   sigla?: boolean
+  tipo?: boolean
   descricao?: boolean
   responsavel?: boolean
   email?: boolean
@@ -1012,6 +1058,7 @@ export type SecretariaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   municipio_id?: boolean
   nome?: boolean
   sigla?: boolean
+  tipo?: boolean
   descricao?: boolean
   responsavel?: boolean
   email?: boolean
@@ -1027,6 +1074,7 @@ export type SecretariaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   municipio_id?: boolean
   nome?: boolean
   sigla?: boolean
+  tipo?: boolean
   descricao?: boolean
   responsavel?: boolean
   email?: boolean
@@ -1042,6 +1090,7 @@ export type SecretariaSelectScalar = {
   municipio_id?: boolean
   nome?: boolean
   sigla?: boolean
+  tipo?: boolean
   descricao?: boolean
   responsavel?: boolean
   email?: boolean
@@ -1051,7 +1100,7 @@ export type SecretariaSelectScalar = {
   updated_at?: boolean
 }
 
-export type SecretariaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "municipio_id" | "nome" | "sigla" | "descricao" | "responsavel" | "email" | "telefone" | "ativo" | "created_at" | "updated_at", ExtArgs["result"]["secretaria"]>
+export type SecretariaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "municipio_id" | "nome" | "sigla" | "tipo" | "descricao" | "responsavel" | "email" | "telefone" | "ativo" | "created_at" | "updated_at", ExtArgs["result"]["secretaria"]>
 export type SecretariaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   municipio?: boolean | Prisma.MunicipioDefaultArgs<ExtArgs>
   diretorias?: boolean | Prisma.Secretaria$diretoriasArgs<ExtArgs>
@@ -1079,6 +1128,7 @@ export type $SecretariaPayload<ExtArgs extends runtime.Types.Extensions.Internal
     municipio_id: string
     nome: string
     sigla: string
+    tipo: $Enums.OrgaoTipo
     descricao: string | null
     responsavel: string | null
     email: string | null
@@ -1517,6 +1567,7 @@ export interface SecretariaFieldRefs {
   readonly municipio_id: Prisma.FieldRef<"Secretaria", 'String'>
   readonly nome: Prisma.FieldRef<"Secretaria", 'String'>
   readonly sigla: Prisma.FieldRef<"Secretaria", 'String'>
+  readonly tipo: Prisma.FieldRef<"Secretaria", 'OrgaoTipo'>
   readonly descricao: Prisma.FieldRef<"Secretaria", 'String'>
   readonly responsavel: Prisma.FieldRef<"Secretaria", 'String'>
   readonly email: Prisma.FieldRef<"Secretaria", 'String'>

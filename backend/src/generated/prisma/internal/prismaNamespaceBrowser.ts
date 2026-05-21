@@ -96,6 +96,7 @@ export const SecretariaScalarFieldEnum = {
   municipio_id: 'municipio_id',
   nome: 'nome',
   sigla: 'sigla',
+  tipo: 'tipo',
   descricao: 'descricao',
   responsavel: 'responsavel',
   email: 'email',
