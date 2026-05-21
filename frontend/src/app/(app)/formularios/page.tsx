@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -43,11 +43,12 @@ interface Formulario {
   publicado_em: string | null
   created_at: string
   criador: { nome: string } | null
+  secretaria: { nome: string; sigla: string; tipo: 'SECRETARIA' | 'PGM' | 'GABINETE' } | null
   atribuicoes: Atribuicao[]
   respostas: Resposta[]
 }
 
-interface Secretaria { id: string; nome: string }
+interface Secretaria { id: string; nome: string; tipo: 'SECRETARIA' | 'PGM' | 'GABINETE' }
 interface Diretoria  { id: string; nome: string; secretaria_id: string }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -60,8 +61,6 @@ const RESP_LABEL: Record<string, string> = {
   RASCUNHO: 'Rascunho', ENVIADO: 'Enviado', EM_REVISAO: 'Em revisão',
   APROVADO: 'Aprovado', REPROVADO: 'Reprovado',
 }
-const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN']
-
 function statusIcon(status: string) {
   if (status === 'APROVADO') return <CheckCircle2 className="h-4 w-4 text-green-500" />
   if (status === 'ENVIADO' || status === 'EM_REVISAO') return <Clock className="h-4 w-4 text-yellow-500" />
@@ -276,7 +275,7 @@ export default function FormulariosPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
-                {['Título', 'Status', 'Versão', 'Criador', 'Publicado em', 'Criado em', ''].map((h) => (
+                {['Título', 'Órgão', 'Status', 'Versão', 'Criador', 'Publicado em', ''].map((h) => (
                   <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -286,12 +285,23 @@ export default function FormulariosPage() {
                 <tr key={f.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">{f.titulo}</td>
                   <td className="px-4 py-3">
+                    {f.secretaria ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-muted-foreground">{f.secretaria.sigla}</span>
+                        {f.secretaria.tipo !== 'SECRETARIA' && (
+                          <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                            {f.secretaria.tipo}
+                          </span>
+                        )}
+                      </div>
+                    ) : '—'}
+                  </td>
+                  <td className="px-4 py-3">
                     <Badge variant={STATUS_VARIANT[f.status] ?? 'secondary'}>{STATUS_LABEL[f.status] ?? f.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">v{f.versao}</td>
                   <td className="px-4 py-3 text-muted-foreground">{f.criador?.nome ?? '—'}</td>
                   <td className="px-4 py-3 text-muted-foreground">{f.publicado_em ? formatDate(f.publicado_em) : '—'}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(f.created_at)}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
                       <Button size="icon" variant="ghost" asChild>
@@ -352,15 +362,47 @@ export default function FormulariosPage() {
             {/* secretaria — só para admins sem secretaria fixa */}
             {isAdmin && !user?.secretaria_id && (
               <div className="space-y-1.5">
-                <Label>Secretaria *</Label>
+                <Label>Órgão responsável *</Label>
                 <Select value={secretariaId} onValueChange={setSecretariaId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione a secretaria" />
+                    <SelectValue placeholder="Selecione o órgão" />
                   </SelectTrigger>
                   <SelectContent>
-                    {secretarias.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
-                    ))}
+                    {/* Órgãos superiores: PGM e Gabinete primeiro */}
+                    {secretarias.filter(s => s.tipo !== 'SECRETARIA').length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel className="text-xs font-semibold text-amber-600 uppercase tracking-wide">
+                          ★ Órgãos Superiores
+                        </SelectLabel>
+                        {secretarias
+                          .filter(s => s.tipo !== 'SECRETARIA')
+                          .map(s => (
+                            <SelectItem key={s.id} value={s.id}>
+                              <span className="font-medium">{s.nome}</span>
+                              <span className="ml-2 text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                                {s.tipo}
+                              </span>
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                    )}
+                    {secretarias.filter(s => s.tipo !== 'SECRETARIA').length > 0 &&
+                     secretarias.filter(s => s.tipo === 'SECRETARIA').length > 0 && (
+                      <SelectSeparator />
+                    )}
+                    {/* Secretarias */}
+                    {secretarias.filter(s => s.tipo === 'SECRETARIA').length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          Secretarias
+                        </SelectLabel>
+                        {secretarias
+                          .filter(s => s.tipo === 'SECRETARIA')
+                          .map(s => (
+                            <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                          ))}
+                      </SelectGroup>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

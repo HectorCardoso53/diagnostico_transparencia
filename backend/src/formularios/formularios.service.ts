@@ -43,7 +43,7 @@ export class FormulariosService {
         prazo_inicio: true,
         prazo_fim: true,
         created_at: true,
-        secretaria: { select: { id: true, nome: true } },
+        secretaria: { select: { id: true, nome: true, sigla: true, tipo: true } },
         criado_por: { select: { id: true, nome: true } },
         atribuicoes: {
           select: {
@@ -65,7 +65,7 @@ export class FormulariosService {
     const f = await this.prisma.formSchema.findUnique({
       where: { id },
       include: {
-        secretaria: { select: { id: true, nome: true } },
+        secretaria: { select: { id: true, nome: true, sigla: true, tipo: true } },
         criado_por: { select: { id: true, nome: true } },
         atribuicoes: {
           include: { diretoria: { select: { id: true, nome: true } } },
