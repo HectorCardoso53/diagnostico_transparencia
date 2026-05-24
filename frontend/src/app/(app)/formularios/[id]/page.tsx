@@ -72,15 +72,22 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'success' | 'dest
 
 // ─── Schema helpers ───────────────────────────────────────────────────────────
 
+function genId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
+
 function newCampo(): CampoBuilder {
-  return { id: crypto.randomUUID(), tipo: 'texto', label: '', obrigatorio: false, opcoes: [] }
+  return { id: genId(), tipo: 'texto', label: '', obrigatorio: false, opcoes: [] }
 }
 
 function schemaToBuilder(schema: Record<string, unknown>): CampoBuilder[] {
   const campos = schema.campos as Array<Record<string, unknown>> | undefined
   if (!Array.isArray(campos)) return []
   return campos.map((c) => ({
-    id: String(c.id ?? crypto.randomUUID()),
+    id: String(c.id ?? genId()),
     tipo: (c.tipo as TipoCampo) ?? 'texto',
     label: String(c.label ?? ''),
     obrigatorio: Boolean(c.obrigatorio ?? false),
