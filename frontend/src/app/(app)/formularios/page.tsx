@@ -175,9 +175,10 @@ export default function FormulariosPage() {
   const [diretoriasSel, setDiretoriasSel] = useState<string[]>([])
   const [saving, setSaving]             = useState(false)
 
-  const isAdmin    = user?.role !== 'SECRETARIO'
   const isSecretario = user?.role === 'SECRETARIO'
-  const canManage  = isAdmin
+  const isDiretor    = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
+  const isResponder  = isSecretario || isDiretor   // vê painel de resposta
+  const canManage    = !isResponder                 // pode criar/arquivar formulários
 
   /* carrega formulários */
   const load = useCallback(() => {
@@ -187,16 +188,20 @@ export default function FormulariosPage() {
       q.set('status', 'PUBLICADO')
       if (user?.secretaria_id) q.set('secretaria_id', user.secretaria_id)
     }
+    if (isDiretor) {
+      q.set('status', 'PUBLICADO')
+      if (user?.diretoria_id) q.set('diretoria_id', user.diretoria_id)
+    }
     api.get<Formulario[]>(`/formularios?${q}`)
       .then(setItems).catch(() => toast.error('Erro ao carregar formulários'))
-  }, [search, isSecretario, user?.secretaria_id])
+  }, [search, isSecretario, isDiretor, user?.secretaria_id, user?.diretoria_id])
 
   useEffect(() => { load() }, [load])
 
-  /* pré-carrega secretarias para admins */
+  /* pré-carrega secretarias para quem pode gerenciar */
   useEffect(() => {
-    if (isAdmin) api.get<Secretaria[]>('/secretarias').then(setSecretarias).catch(() => {})
-  }, [isAdmin])
+    if (canManage) api.get<Secretaria[]>('/secretarias').then(setSecretarias).catch(() => {})
+  }, [canManage])
 
   /* quando secretaria muda, recarrega diretorias */
   useEffect(() => {
@@ -267,8 +272,8 @@ export default function FormulariosPage() {
       <Input placeholder="Buscar por título..." value={search}
         onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
 
-      {/* secretário vê painel de cards; admin vê tabela */}
-      {isSecretario ? (
+      {/* diretor/secretário vê painel de resposta; admin vê tabela */}
+      {isResponder ? (
         <PainelSecretario items={items} />
       ) : (
         <div className="rounded-lg border overflow-hidden">
@@ -360,7 +365,7 @@ export default function FormulariosPage() {
             </div>
 
             {/* secretaria — só para admins sem secretaria fixa */}
-            {isAdmin && !user?.secretaria_id && (
+            {canManage && !user?.secretaria_id && (
               <div className="space-y-1.5">
                 <Label>Órgão responsável *</Label>
                 <Select value={secretariaId} onValueChange={setSecretariaId}>
