@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -24,22 +24,31 @@ interface Usuario {
 }
 
 interface Secretaria { id: string; nome: string; sigla: string }
-interface Diretoria { id: string; nome: string; sigla: string; secretaria_id: string }
+interface Diretoria  { id: string; nome: string; sigla: string; secretaria_id: string }
+interface Formulario { id: string; titulo: string; status: string }
 
-const ROLES = ['ADMIN', 'SECRETARIO']
-const NONE = '__none__'
+const ROLES = ['ADMIN', 'SECRETARIO', 'DIRETOR', 'OPERADOR']
+const NONE  = '__none__'
+
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN: 'Admin', SECRETARIO: 'Secretário', DIRETOR: 'Diretor', OPERADOR: 'Operador', SUPER_ADMIN: 'Super Admin',
+}
+const ROLE_COLOR: Record<string, 'default' | 'secondary' | 'success' | 'outline'> = {
+  SUPER_ADMIN: 'default', ADMIN: 'default', SECRETARIO: 'success', DIRETOR: 'secondary', OPERADOR: 'outline',
+}
 
 const emptyForm = { nome: '', email: '', senha: '', role: 'SECRETARIO', secretaria_id: NONE, diretoria_id: NONE }
 
 export default function UsuariosPage() {
-  const [items, setItems] = useState<Usuario[]>([])
+  const [items, setItems]           = useState<Usuario[]>([])
   const [secretarias, setSecretarias] = useState<Secretaria[]>([])
-  const [diretorias, setDiretorias] = useState<Diretoria[]>([])
-  const [search, setSearch] = useState('')
-  const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState<Usuario | null>(null)
-  const [form, setForm] = useState(emptyForm)
-  const [saving, setSaving] = useState(false)
+  const [diretorias, setDiretorias]   = useState<Diretoria[]>([])
+  const [formsDiretoria, setFormsDiretoria] = useState<Formulario[]>([])
+  const [search, setSearch]         = useState('')
+  const [open, setOpen]             = useState(false)
+  const [editing, setEditing]       = useState<Usuario | null>(null)
+  const [form, setForm]             = useState(emptyForm)
+  const [saving, setSaving]         = useState(false)
 
   const load = useCallback(() => {
     const q = new URLSearchParams({ ativo: 'true' })
@@ -55,13 +64,37 @@ export default function UsuariosPage() {
     api.get<Diretoria[]>('/diretorias?ativo=true').then(setDiretorias).catch(() => {})
   }, [])
 
+  /* filtra diretorias pela secretaria selecionada */
   const diretoriasFiltradas = form.secretaria_id && form.secretaria_id !== NONE
     ? diretorias.filter((d) => d.secretaria_id === form.secretaria_id)
     : diretorias
 
+  /* quando muda secretaria, reseta diretoria */
+  function setSecretaria(val: string) {
+    setForm((f) => ({ ...f, secretaria_id: val, diretoria_id: NONE }))
+    setFormsDiretoria([])
+  }
+
+  /* quando muda diretoria, busca formulários atribuídos */
+  function setDiretoria(val: string) {
+    setForm((f) => ({ ...f, diretoria_id: val }))
+    if (val && val !== NONE) {
+      api.get<Formulario[]>(`/formularios?diretoria_id=${val}`)
+        .then(setFormsDiretoria)
+        .catch(() => setFormsDiretoria([]))
+    } else {
+      setFormsDiretoria([])
+    }
+  }
+
+  const isDiretor  = form.role === 'DIRETOR' || form.role === 'OPERADOR'
+  const isSecretario = form.role === 'SECRETARIO'
+  const needsDiretoria = isDiretor
+
   function openCreate() {
     setEditing(null)
     setForm(emptyForm)
+    setFormsDiretoria([])
     setOpen(true)
   }
 
@@ -73,34 +106,36 @@ export default function UsuariosPage() {
       senha: '',
       role: u.role,
       secretaria_id: u.secretaria?.id ?? NONE,
-      diretoria_id: u.diretoria?.id ?? NONE,
+      diretoria_id:  u.diretoria?.id  ?? NONE,
     })
+    setFormsDiretoria([])
     setOpen(true)
   }
 
-  function setSecretaria(val: string) {
-    setForm((f) => ({ ...f, secretaria_id: val, diretoria_id: NONE }))
-  }
-
   async function save() {
+    if (needsDiretoria && form.diretoria_id === NONE) {
+      toast.error('Selecione a diretoria do diretor')
+      return
+    }
+    if ((isDiretor || isSecretario) && form.secretaria_id === NONE) {
+      toast.error('Selecione a secretaria')
+      return
+    }
     setSaving(true)
     try {
       if (editing) {
         const payload: Record<string, unknown> = { nome: form.nome, email: form.email, role: form.role }
         if (form.senha) payload.senha = form.senha
-        if (form.secretaria_id && form.secretaria_id !== NONE) payload.secretaria_id = form.secretaria_id
-        if (form.diretoria_id && form.diretoria_id !== NONE) payload.diretoria_id = form.diretoria_id
+        if (form.secretaria_id !== NONE) payload.secretaria_id = form.secretaria_id
+        if (form.diretoria_id  !== NONE) payload.diretoria_id  = form.diretoria_id
         await api.patch(`/usuarios/${editing.id}`, payload)
         toast.success('Usuário atualizado')
       } else {
         const payload: Record<string, unknown> = {
-          nome: form.nome,
-          email: form.email,
-          senha: form.senha,
-          role: form.role,
+          nome: form.nome, email: form.email, senha: form.senha, role: form.role,
         }
         if (form.secretaria_id !== NONE) payload.secretaria_id = form.secretaria_id
-        if (form.diretoria_id !== NONE) payload.diretoria_id = form.diretoria_id
+        if (form.diretoria_id  !== NONE) payload.diretoria_id  = form.diretoria_id
         await api.post('/usuarios', payload)
         toast.success('Usuário criado')
       }
@@ -121,10 +156,6 @@ export default function UsuariosPage() {
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro')
     }
-  }
-
-  const roleColor: Record<string, 'default' | 'secondary' | 'success'> = {
-    ADMIN: 'default', SECRETARIO: 'success',
   }
 
   const canSave = form.nome.trim() && form.email.trim() && (editing || form.senha.trim())
@@ -157,7 +188,9 @@ export default function UsuariosPage() {
               <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3 font-medium">{u.nome}</td>
                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                <td className="px-4 py-3"><Badge variant={roleColor[u.role] ?? 'secondary'}>{u.role}</Badge></td>
+                <td className="px-4 py-3">
+                  <Badge variant={ROLE_COLOR[u.role] ?? 'secondary'}>{ROLE_LABEL[u.role] ?? u.role}</Badge>
+                </td>
                 <td className="px-4 py-3 text-muted-foreground">{u.secretaria?.nome ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{u.diretoria?.nome ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(u.created_at)}</td>
@@ -178,8 +211,12 @@ export default function UsuariosPage() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{editing ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3 py-2">
+
+            {/* Dados básicos */}
             <div className="space-y-1.5">
               <Label>Nome *</Label>
               <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} autoFocus />
@@ -192,36 +229,81 @@ export default function UsuariosPage() {
               <Label>{editing ? 'Nova senha (deixe vazio para manter)' : 'Senha *'}</Label>
               <Input type="password" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} />
             </div>
+
+            {/* Role */}
             <div className="space-y-1.5">
-              <Label>Role *</Label>
-              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+              <Label>Perfil *</Label>
+              <Select value={form.role} onValueChange={(v) => { setForm((f) => ({ ...f, role: v, diretoria_id: NONE })); setFormsDiretoria([]) }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {ROLES.map((r) => (
+                    <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+
+            {/* Secretaria — para SECRETARIO, DIRETOR e OPERADOR */}
+            {(isDiretor || isSecretario) && (
               <div className="space-y-1.5">
-                <Label>Secretaria</Label>
+                <Label>Secretaria / Órgão {(isDiretor || isSecretario) ? '*' : ''}</Label>
                 <Select value={form.secretaria_id} onValueChange={setSecretaria}>
-                  <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={NONE}>Nenhuma</SelectItem>
-                    {secretarias.map((s) => <SelectItem key={s.id} value={s.id}>{s.nome} ({s.sigla})</SelectItem>)}
+                    {secretarias.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.nome} ({s.sigla})</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+            )}
+
+            {/* Diretoria — obrigatória para DIRETOR e OPERADOR */}
+            {isDiretor && (
               <div className="space-y-1.5">
-                <Label>Diretoria</Label>
-                <Select value={form.diretoria_id} onValueChange={(v) => setForm({ ...form, diretoria_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+                <Label>Diretoria *</Label>
+                <Select
+                  value={form.diretoria_id}
+                  onValueChange={setDiretoria}
+                  disabled={form.secretaria_id === NONE}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={form.secretaria_id === NONE ? 'Selecione a secretaria primeiro' : 'Selecione a diretoria'} />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={NONE}>Nenhuma</SelectItem>
-                    {diretoriasFiltradas.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome} ({d.sigla})</SelectItem>)}
+                    {diretoriasFiltradas.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>{d.nome} ({d.sigla})</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+
+                {/* Formulários associados à diretoria escolhida */}
+                {form.diretoria_id !== NONE && (
+                  <div className="mt-2 rounded-md border bg-muted/30 px-3 py-2">
+                    <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                      <ClipboardList className="h-3.5 w-3.5" />
+                      Formulários atribuídos a esta diretoria
+                    </p>
+                    {formsDiretoria.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">Nenhum formulário atribuído ainda</p>
+                    ) : (
+                      <ul className="space-y-1">
+                        {formsDiretoria.map((f) => (
+                          <li key={f.id} className="flex items-center justify-between text-xs">
+                            <span className="font-medium">{f.titulo}</span>
+                            <Badge variant={f.status === 'PUBLICADO' ? 'success' : 'secondary'} className="text-[10px] px-1.5">
+                              {f.status === 'PUBLICADO' ? 'Publicado' : f.status === 'ARQUIVADO' ? 'Arquivado' : 'Rascunho'}
+                            </Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={save} disabled={saving || !canSave}>{saving ? 'Salvando...' : 'Salvar'}</Button>

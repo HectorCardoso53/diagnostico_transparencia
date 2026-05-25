@@ -35,10 +35,11 @@ export class FormulariosController {
   @Get()
   findAll(
     @Query('secretaria_id') secretaria_id?: string,
+    @Query('diretoria_id') diretoria_id?: string,
     @Query('status') status?: FormStatus,
     @Query('titulo') titulo?: string,
   ) {
-    return this.service.findAll({ secretaria_id, status, titulo });
+    return this.service.findAll({ secretaria_id, diretoria_id, status, titulo });
   }
 
   @Get(':id')

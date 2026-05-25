@@ -22,12 +22,16 @@ export class FormulariosService {
 
   findAll(filters: {
     secretaria_id?: string;
+    diretoria_id?: string;
     status?: FormStatus;
     titulo?: string;
   }) {
     return this.prisma.formSchema.findMany({
       where: {
         ...(filters.secretaria_id && { secretaria_id: filters.secretaria_id }),
+        ...(filters.diretoria_id && {
+          atribuicoes: { some: { diretoria_id: filters.diretoria_id } },
+        }),
         ...(filters.status && { status: filters.status }),
         ...(filters.titulo && {
           titulo: { contains: filters.titulo, mode: 'insensitive' },
