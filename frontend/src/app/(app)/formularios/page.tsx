@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, MoreHorizontal, Plus, Trash2, Archive, ClipboardList, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { Eye, MoreHorizontal, Plus, Trash2, Archive, ClipboardList, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -22,6 +22,15 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
+interface Campo {
+  id?: string
+  nome?: string
+  label: string
+  tipo: string
+  obrigatorio?: boolean
+  opcoes?: string[]
+}
+
 interface Atribuicao {
   diretoria: { id: string; nome: string }
   prazo: string | null
@@ -32,12 +41,15 @@ interface Resposta {
   id: string
   status: string
   diretoria_id: string
+  enviado_em: string | null
+  usuario: { nome: string } | null
 }
 
 interface Formulario {
   id: string
   titulo: string
   descricao: string | null
+  schema_json: { campos?: Campo[] } | null
   status: string
   versao: number
   publicado_em: string | null
@@ -61,6 +73,10 @@ const RESP_LABEL: Record<string, string> = {
   RASCUNHO: 'Rascunho', ENVIADO: 'Enviado', EM_REVISAO: 'Em revisão',
   APROVADO: 'Aprovado', REPROVADO: 'Reprovado',
 }
+const RESP_VARIANT: Record<string, 'default' | 'secondary' | 'success' | 'destructive'> = {
+  RASCUNHO: 'secondary', ENVIADO: 'default', EM_REVISAO: 'default',
+  APROVADO: 'success', REPROVADO: 'destructive',
+}
 function statusIcon(status: string) {
   if (status === 'APROVADO') return <CheckCircle2 className="h-4 w-4 text-green-500" />
   if (status === 'ENVIADO' || status === 'EM_REVISAO') return <Clock className="h-4 w-4 text-yellow-500" />
@@ -68,95 +84,244 @@ function statusIcon(status: string) {
   return <ClipboardList className="h-4 w-4 text-muted-foreground" />
 }
 
-/* ── Painel de formulários para secretários ───────────────── */
-function PainelSecretario({ items }: { items: Formulario[] }) {
+/* ── Painel para DIRETOR/OPERADOR ─────────────────────────── */
+function PainelDiretor({ items, diretoriaId }: { items: Formulario[]; diretoriaId: string }) {
   const router = useRouter()
-  const [responding, setResponding] = useState<string | null>(null)
+  const [loading, setLoading] = useState<string | null>(null)
 
-  async function responder(formId: string, diretoriaId: string) {
-    const key = `${formId}:${diretoriaId}`
-    setResponding(key)
+  async function abrirFormulario(formId: string, respostaId?: string) {
+    if (respostaId) { router.push(`/respostas/${respostaId}`); return }
+    setLoading(formId)
     try {
       const nova = await api.post<{ id: string }>('/respostas', {
         form_id: formId, diretoria_id: diretoriaId, dados_json: {},
       })
       router.push(`/respostas/${nova.id}`)
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao criar resposta')
-      setResponding(null)
+      toast.error(e instanceof Error ? e.message : 'Erro ao abrir formulário')
+      setLoading(null)
     }
   }
 
-  return (
-    <div className="space-y-6">
-      {items.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Formulários para responder</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {items.map(f => (
-              <Card key={f.id} className="border shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-semibold leading-tight">{f.titulo}</CardTitle>
-                  {f.descricao && <p className="text-xs text-muted-foreground mt-1">{f.descricao}</p>}
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {f.atribuicoes.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Nenhuma diretoria atribuída</p>
-                  ) : (
-                    <div className="divide-y rounded-md border overflow-hidden">
-                      {f.atribuicoes.map(({ diretoria, prazo }) => {
-                        const resp = f.respostas.find(r => r.diretoria_id === diretoria.id)
-                        return (
-                          <div key={diretoria.id} className="flex items-center justify-between px-3 py-2 bg-background hover:bg-muted/30 text-sm">
-                            <div className="flex items-center gap-2">
-                              {statusIcon(resp?.status ?? '')}
-                              <span className="font-medium">{diretoria.nome}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              {prazo && <span>Prazo: {formatDate(prazo)}</span>}
-                              {resp ? (
-                                <Link
-                                  href={`/respostas/${resp.id}`}
-                                  className="flex items-center gap-1.5 hover:opacity-80"
-                                >
-                                  <Badge variant={STATUS_VARIANT[resp.status] ?? 'secondary'} className="text-[10px] px-1.5 py-0">
-                                    {RESP_LABEL[resp.status] ?? resp.status}
-                                  </Badge>
-                                  <Eye className="h-3 w-3" />
-                                </Link>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-6 text-[11px] px-2"
-                                  disabled={responding === `${f.id}:${diretoria.id}`}
-                                  onClick={() => responder(f.id, diretoria.id)}
-                                >
-                                  {responding === `${f.id}:${diretoria.id}` ? '...' : 'Responder'}
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                  <p className="text-[11px] text-muted-foreground">
-                    Publicado em {f.publicado_em ? formatDate(f.publicado_em) : '—'} · v{f.versao}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-      )}
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-16 text-muted-foreground">
+        <ClipboardList className="h-10 w-10 mx-auto mb-3 opacity-30" />
+        <p className="font-medium">Nenhum formulário disponível</p>
+        <p className="text-sm mt-1">Aguarde o administrador atribuir formulários à sua diretoria.</p>
+      </div>
+    )
+  }
 
-      {items.length === 0 && (
-        <div className="text-center py-16 text-muted-foreground">
-          <p className="font-medium">Nenhum formulário publicado para você</p>
-          <p className="text-sm mt-1">Aguarde o administrador publicar e atribuir formulários à sua secretaria.</p>
-        </div>
-      )}
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {items.map(f => {
+        const resp = f.respostas.find(r => r.diretoria_id === diretoriaId)
+        const atrib = f.atribuicoes.find(a => a.diretoria.id === diretoriaId)
+        const isLoading = loading === f.id
+
+        const btnLabel = isLoading ? 'Carregando...'
+          : !resp           ? 'Abrir formulário'
+          : resp.status === 'RASCUNHO'    ? 'Continuar preenchendo'
+          : resp.status === 'REPROVADO'   ? 'Ver resposta reprovada'
+          : resp.status === 'APROVADO'    ? 'Ver formulário aprovado'
+          : 'Ver resposta enviada'
+
+        return (
+          <Card key={f.id} className="border shadow-sm flex flex-col">
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between gap-2">
+                <CardTitle className="text-base font-semibold leading-tight">{f.titulo}</CardTitle>
+                {resp && (
+                  <Badge variant={RESP_VARIANT[resp.status] ?? 'secondary'} className="shrink-0 text-[11px]">
+                    {statusIcon(resp.status)}
+                    <span className="ml-1">{RESP_LABEL[resp.status] ?? resp.status}</span>
+                  </Badge>
+                )}
+              </div>
+              {f.descricao && <p className="text-xs text-muted-foreground mt-1">{f.descricao}</p>}
+            </CardHeader>
+            <CardContent className="space-y-3 flex-1 flex flex-col justify-end">
+              {atrib?.prazo && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Prazo: {formatDate(atrib.prazo)}
+                </p>
+              )}
+              <p className="text-[11px] text-muted-foreground">
+                Publicado em {f.publicado_em ? formatDate(f.publicado_em) : '—'} · v{f.versao}
+              </p>
+              <Button
+                className="w-full"
+                variant={resp?.status === 'APROVADO' ? 'outline' : 'default'}
+                disabled={isLoading}
+                onClick={() => abrirFormulario(f.id, resp?.id)}
+              >
+                {btnLabel}
+              </Button>
+            </CardContent>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
+const TIPO_LABEL: Record<string, string> = {
+  texto: 'Resposta curta', paragrafo: 'Parágrafo', textarea: 'Parágrafo',
+  multipla_escolha: 'Múltipla escolha', caixa_selecao: 'Caixas de seleção',
+  lista_suspensa: 'Lista suspensa', select: 'Lista suspensa',
+  numero: 'Número', data: 'Data', booleano: 'Sim/Não',
+}
+
+/* ── Painel de formulários para secretários ───────────────── */
+function PainelSecretario({ items }: { items: Formulario[] }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  function toggleExpand(id: string) {
+    setExpandedId(prev => prev === id ? null : id)
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-16 text-muted-foreground">
+        <ClipboardList className="h-10 w-10 mx-auto mb-3 opacity-30" />
+        <p className="font-medium">Nenhum formulário publicado</p>
+        <p className="text-sm mt-1">Nenhum formulário foi publicado para sua secretaria ainda.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {items.map(f => {
+        const total     = f.atribuicoes.length
+        const aprovadas = f.respostas.filter(r => r.status === 'APROVADO').length
+        const analise   = f.respostas.filter(r => r.status === 'ENVIADO' || r.status === 'EM_REVISAO').length
+        const reprovadas = f.respostas.filter(r => r.status === 'REPROVADO').length
+        const aguardando = total - f.respostas.filter(r => r.status !== 'RASCUNHO').length - aprovadas
+        const enviadas  = f.respostas.filter(r => r.status !== 'RASCUNHO').length
+
+        return (
+          <Card key={f.id} className="border shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base font-semibold">{f.titulo}</CardTitle>
+                  {f.descricao && <p className="text-xs text-muted-foreground mt-1">{f.descricao}</p>}
+                </div>
+                <p className="text-xs text-muted-foreground shrink-0">
+                  Publicado em {f.publicado_em ? formatDate(f.publicado_em) : '—'}
+                </p>
+              </div>
+
+              {/* barra de progresso + contadores */}
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">{enviadas}/{total} diretorias responderam</span>
+                  <button
+                    onClick={() => toggleExpand(f.id)}
+                    className="flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    {expandedId === f.id ? <><ChevronUp className="h-3 w-3" />Ocultar perguntas</> : <><ChevronDown className="h-3 w-3" />Ver perguntas</>}
+                  </button>
+                </div>
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden flex">
+                  {total > 0 && <>
+                    <div className="h-full bg-green-500 transition-all"  style={{ width: `${(aprovadas / total) * 100}%` }} />
+                    <div className="h-full bg-yellow-400 transition-all" style={{ width: `${(analise   / total) * 100}%` }} />
+                    <div className="h-full bg-red-400 transition-all"    style={{ width: `${(reprovadas / total) * 100}%` }} />
+                  </>}
+                </div>
+                <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+                  {aprovadas  > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{aprovadas} aprovada{aprovadas !== 1 ? 's' : ''}</span>}
+                  {analise    > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />{analise} em análise</span>}
+                  {reprovadas > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" />{reprovadas} reprovada{reprovadas !== 1 ? 's' : ''}</span>}
+                  {aguardando > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />{aguardando} aguardando</span>}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {f.atribuicoes.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Nenhuma diretoria atribuída</p>
+              ) : (
+                <div className="divide-y rounded-md border overflow-hidden">
+                  {f.atribuicoes.map(({ diretoria, prazo }) => {
+                    const resp = f.respostas.find(r => r.diretoria_id === diretoria.id)
+                    return (
+                      <div key={diretoria.id} className="flex items-center justify-between px-3 py-2.5 bg-background text-sm">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {statusIcon(resp?.status ?? '')}
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{diretoria.nome}</p>
+                            {resp?.usuario && (
+                              <p className="text-[11px] text-muted-foreground">
+                                Respondido por {resp.usuario.nome}
+                                {resp.enviado_em ? ` · ${formatDate(resp.enviado_em)}` : ''}
+                              </p>
+                            )}
+                            {!resp && prazo && (
+                              <p className="text-[11px] text-muted-foreground">Prazo: {formatDate(prazo)}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="shrink-0 ml-3">
+                          {resp ? (
+                            <Link href={`/respostas/${resp.id}`} className="flex items-center gap-1.5 hover:opacity-80">
+                              <Badge variant={RESP_VARIANT[resp.status] ?? 'secondary'} className="text-[10px] px-1.5 py-0">
+                                {RESP_LABEL[resp.status] ?? resp.status}
+                              </Badge>
+                              <Eye className="h-3 w-3 text-muted-foreground" />
+                            </Link>
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground italic">Aguardando</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+
+            {/* Perguntas do formulário — expansível */}
+            {expandedId === f.id && (
+              <div className="border-t px-6 py-4 space-y-2 bg-muted/20">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                  Perguntas do formulário
+                </p>
+                {(() => {
+                  const campos: Campo[] = (f.schema_json as { campos?: Campo[] } | null)?.campos ?? []
+                  if (campos.length === 0) {
+                    return <p className="text-xs text-muted-foreground italic">Este formulário ainda não possui perguntas.</p>
+                  }
+                  return campos.map((c, i) => (
+                    <div key={c.id ?? c.nome ?? i} className="flex items-start gap-3 py-2 border-b last:border-0">
+                      <span className="text-xs font-bold text-muted-foreground w-5 shrink-0 pt-0.5">{i + 1}.</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium leading-snug">
+                          {c.label}
+                          {c.obrigatorio && <span className="text-destructive ml-1 text-xs">*</span>}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{TIPO_LABEL[c.tipo] ?? c.tipo}</p>
+                        {c.opcoes && c.opcoes.length > 0 && (
+                          <ul className="mt-1 space-y-0.5">
+                            {c.opcoes.map(o => (
+                              <li key={o} className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 inline-block shrink-0" />{o}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                })()}
+              </div>
+            )}
+          </Card>
+        )
+      })}
     </div>
   )
 }
@@ -272,8 +437,10 @@ export default function FormulariosPage() {
       <Input placeholder="Buscar por título..." value={search}
         onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
 
-      {/* diretor/secretário vê painel de resposta; admin vê tabela */}
-      {isResponder ? (
+      {/* diretor vê painel próprio; secretário vê todos os formulários e diretorias; admin vê tabela */}
+      {isDiretor ? (
+        <PainelDiretor items={items} diretoriaId={user?.diretoria_id ?? ''} />
+      ) : isSecretario ? (
         <PainelSecretario items={items} />
       ) : (
         <div className="rounded-lg border overflow-hidden">

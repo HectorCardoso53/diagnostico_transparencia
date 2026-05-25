@@ -41,6 +41,7 @@ export class FormulariosService {
         id: true,
         titulo: true,
         descricao: true,
+        schema_json: true,
         versao: true,
         status: true,
         publicado_em: true,
@@ -57,7 +58,13 @@ export class FormulariosService {
           },
         },
         respostas: {
-          select: { id: true, status: true, diretoria_id: true },
+          select: {
+            id: true,
+            status: true,
+            diretoria_id: true,
+            enviado_em: true,
+            usuario: { select: { nome: true } },
+          },
         },
         _count: { select: { atribuicoes: true, respostas: true } },
       },

@@ -63,7 +63,8 @@ const REVIEW_OPTIONS = [
 export default function RespostaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { user } = useAuth()
-  const isAdmin = user?.role !== 'SECRETARIO'
+  const canFill   = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
+  const canReview = user?.role === 'SECRETARIO' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
   const [id, setId] = useState('')
   const [resposta, setResposta] = useState<Resposta | null>(null)
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
@@ -152,7 +153,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
 
   const campos: Campo[] = resposta.formulario?.schema_json?.campos ?? []
   const isRascunho = resposta.status === 'RASCUNHO'
-  const isEnviado = resposta.status === 'ENVIADO' || resposta.status === 'EM_REVISAO'
+  const isEnviado  = resposta.status === 'ENVIADO' || resposta.status === 'EM_REVISAO'
 
   return (
     <div className="p-6 pb-12 space-y-6 max-w-4xl mx-auto">
@@ -171,7 +172,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
             {resposta.diretoria?.nome ?? '—'} · {resposta.usuario?.nome ?? '—'} · {formatDate(resposta.created_at)}
           </p>
         </div>
-        {isRascunho && (
+        {isRascunho && canFill && (
           <div className="flex gap-2 shrink-0">
             <Button variant="outline" onClick={salvarRascunho} disabled={saving}>
               {saving ? 'Salvando...' : 'Salvar rascunho'}
@@ -183,10 +184,10 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
         )}
       </div>
 
-      <div className={`grid grid-cols-1 gap-6 ${isAdmin ? 'lg:grid-cols-3' : ''}`}>
+      <div className={`grid grid-cols-1 gap-6 ${canReview ? 'lg:grid-cols-3' : ''}`}>
 
         {/* Perguntas */}
-        <div className={isAdmin ? 'lg:col-span-2 space-y-4' : 'space-y-4'}>
+        <div className={canReview ? 'lg:col-span-2 space-y-4' : 'space-y-4'}>
 
           {/* Cabeçalho do formulário */}
           {resposta.formulario && (
@@ -205,7 +206,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
           ) : (
             campos.map((campo) => {
               const key = campoKey(campo)
-              const disabled = !isRascunho
+              const disabled = !isRascunho || !canFill
 
               return (
                 <div key={key} className="rounded-xl border bg-card p-5 space-y-3 shadow-sm">
@@ -341,7 +342,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* Painel de revisão — só para admin */}
-        {isAdmin && <div className="space-y-4">
+        {canReview && <div className="space-y-4">
           <h2 className="text-lg font-semibold">Revisão</h2>
 
           {isEnviado ? (

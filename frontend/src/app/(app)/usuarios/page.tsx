@@ -263,7 +263,7 @@ export default function UsuariosPage() {
               <div className="space-y-1.5">
                 <Label>Diretoria *</Label>
                 <Select
-                  value={form.diretoria_id}
+                  value={form.diretoria_id === NONE ? undefined : form.diretoria_id}
                   onValueChange={setDiretoria}
                   disabled={form.secretaria_id === NONE}
                 >

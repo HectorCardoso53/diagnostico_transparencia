@@ -23,18 +23,31 @@ const secretarioNav = [
   { href: '/formularios', label: 'Meus Formulários', icon: ScrollText },
 ]
 
+const diretorNav = [
+  { href: '/formularios', label: 'Meus Formulários', icon: ScrollText },
+]
+
+const RESPONDER_ROLES = ['SECRETARIO', 'DIRETOR', 'OPERADOR']
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
 
-  const navItems = user?.role === 'SECRETARIO' ? secretarioNav : adminNav
+  const isResponder = RESPONDER_ROLES.includes(user?.role ?? '')
+  const isDiretor   = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
+
+  const navItems = user?.role === 'SECRETARIO'
+    ? secretarioNav
+    : isDiretor
+      ? diretorNav
+      : adminNav
 
   useEffect(() => {
-    if (user?.role === 'SECRETARIO' && pathname !== '/formularios' && !pathname.startsWith('/respostas')) {
+    if (isResponder && pathname !== '/formularios' && !pathname.startsWith('/respostas')) {
       router.replace('/formularios')
     }
-  }, [user, pathname, router])
+  }, [isResponder, pathname, router])
 
   return (
     <div className="flex h-screen bg-gray-100">
