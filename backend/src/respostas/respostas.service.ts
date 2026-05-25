@@ -176,6 +176,20 @@ export class RespostasService {
     });
   }
 
+  async remove(id: string, user: CurrentUser) {
+    const r = await this.assertExists(id);
+
+    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN];
+    if (!adminRoles.includes(user.role)) {
+      if (r.user_id !== user.id)
+        throw new ForbiddenException('Sem permissão para excluir esta resposta');
+      if (r.status !== ResponseStatus.RASCUNHO)
+        throw new BadRequestException('Somente rascunhos podem ser excluídos pelo autor');
+    }
+
+    await this.prisma.formResponse.delete({ where: { id } });
+  }
+
   private async assertExists(id: string) {
     const r = await this.prisma.formResponse.findUnique({ where: { id } });
     if (!r) throw new NotFoundException('Resposta não encontrada');

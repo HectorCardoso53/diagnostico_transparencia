@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Eye, Plus } from 'lucide-react'
+import { Eye, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -51,6 +51,8 @@ export default function RespostasPage() {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ form_id: '', diretoria_id: '' })
   const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<Resposta | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(() => {
     api.get<Resposta[]>('/respostas').then(setItems).catch(() => toast.error('Erro ao carregar respostas'))
@@ -64,6 +66,21 @@ export default function RespostasPage() {
     ).catch(() => {})
     api.get<Diretoria[]>('/diretorias').then(setDiretorias).catch(() => {})
   }, [])
+
+  async function remove() {
+    if (!confirmDelete) return
+    setDeleting(true)
+    try {
+      await api.delete(`/respostas/${confirmDelete.id}`)
+      toast.success('Resposta excluída')
+      setConfirmDelete(null)
+      load()
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao excluir')
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   async function create() {
     setSaving(true)
@@ -116,9 +133,19 @@ export default function RespostasPage() {
                 <td className="px-4 py-3 text-muted-foreground">{r.revisado_por_usuario?.nome ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(r.created_at)}</td>
                 <td className="px-4 py-3">
-                  <Button size="icon" variant="ghost" asChild>
-                    <Link href={`/respostas/${r.id}`}><Eye className="h-3.5 w-3.5" /></Link>
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" asChild>
+                      <Link href={`/respostas/${r.id}`}><Eye className="h-3.5 w-3.5" /></Link>
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setConfirmDelete(r)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -132,6 +159,28 @@ export default function RespostasPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Confirmação de exclusão */}
+      <Dialog open={!!confirmDelete} onOpenChange={(v) => { if (!v) setConfirmDelete(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Excluir resposta</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Tem certeza que deseja excluir a resposta de{' '}
+            <span className="font-medium text-foreground">{confirmDelete?.diretoria?.nome ?? '—'}</span>{' '}
+            para o formulário{' '}
+            <span className="font-medium text-foreground">{confirmDelete?.formulario?.titulo ?? '—'}</span>?
+            Esta ação não pode ser desfeita.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)} disabled={deleting}>Cancelar</Button>
+            <Button variant="destructive" onClick={remove} disabled={deleting}>
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
