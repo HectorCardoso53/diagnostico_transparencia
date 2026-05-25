@@ -144,10 +144,10 @@ Write-Step "Iniciando Frontend (Next.js)..."
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
-    "Set-Location '$Frontend'; Write-Host '[FRONTEND] Next.js iniciando...' -ForegroundColor Magenta; npm run dev"
+    "Set-Location '$Frontend'; Write-Host '[FRONTEND] Next.js iniciando...' -ForegroundColor Magenta; npm run dev -- --port 3003"
 ) -WindowStyle Normal
 
-Write-OK "Frontend iniciando na porta 3000 (nova janela)."
+Write-OK "Frontend iniciando na porta 3003 (nova janela)."
 
 # =============================================================
 #  Resumo
@@ -156,7 +156,7 @@ Write-Host ""
 Write-Host "=============================================" -ForegroundColor White
 Write-Host "  Ambiente iniciado com sucesso!" -ForegroundColor Green
 Write-Host "=============================================" -ForegroundColor White
-Write-Host "  Frontend  -> http://localhost:3000" -ForegroundColor White
+Write-Host "  Frontend  -> http://localhost:3003" -ForegroundColor White
 Write-Host "  Backend   -> http://localhost:3001/api" -ForegroundColor White
 Write-Host "  Banco     -> localhost:5432 (diag_postgres)" -ForegroundColor White
 Write-Host ""
