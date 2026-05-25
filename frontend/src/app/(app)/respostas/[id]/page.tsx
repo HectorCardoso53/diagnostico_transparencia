@@ -23,6 +23,7 @@ type TipoCampo =
   | 'caixa_selecao'                             // checkbox (resposta = string[])
   | 'lista_suspensa' | 'select'                 // dropdown
   | 'numero' | 'data' | 'booleano'              // outros
+  | 'moeda'                                     // valor em R$
 
 interface Campo {
   id?: string
@@ -45,6 +46,17 @@ interface Resposta {
   diretoria: { nome: string } | null
   usuario: { nome: string } | null
   revisado_por_usuario: { nome: string } | null
+}
+
+function formatMoeda(val: unknown): string {
+  if (val === undefined || val === null || val === '') return ''
+  const str = String(val).replace(/\./g, ',')
+  return str
+}
+
+function parseMoeda(input: string): string {
+  // Mantém apenas dígitos e vírgula
+  return input.replace(/[^\d,]/g, '')
 }
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'success' | 'destructive'> = {
@@ -317,6 +329,22 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
                         ))}
                       </SelectContent>
                     </Select>
+                  )}
+
+                  {/* Valor em R$ */}
+                  {campo.tipo === 'moeda' && (
+                    <div className="flex items-center border rounded-md max-w-[220px] focus-within:ring-2 focus-within:ring-ring overflow-hidden">
+                      <span className="px-3 py-2 text-sm font-medium bg-muted text-muted-foreground border-r select-none">R$</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={formatMoeda(answers[key])}
+                        onChange={(e) => setAnswer(key, parseMoeda(e.target.value))}
+                        disabled={disabled}
+                        placeholder="0,00"
+                        className="flex-1 px-3 py-2 text-sm bg-transparent outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                    </div>
                   )}
 
                   {/* Booleano (tipo legado) */}

@@ -171,7 +171,7 @@ const TIPO_LABEL: Record<string, string> = {
   texto: 'Resposta curta', paragrafo: 'Parágrafo', textarea: 'Parágrafo',
   multipla_escolha: 'Múltipla escolha', caixa_selecao: 'Caixas de seleção',
   lista_suspensa: 'Lista suspensa', select: 'Lista suspensa',
-  numero: 'Número', data: 'Data', booleano: 'Sim/Não',
+  numero: 'Número', data: 'Data', booleano: 'Sim/Não', moeda: 'Valor em R$',
 }
 
 /* ── Painel de formulários para secretários ───────────────── */

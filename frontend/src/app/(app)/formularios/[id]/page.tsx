@@ -25,6 +25,7 @@ type TipoCampo =
   | 'lista_suspensa'
   | 'numero'
   | 'data'
+  | 'moeda'
 
 const TIPOS: { value: TipoCampo; label: string }[] = [
   { value: 'texto', label: 'Resposta curta' },
@@ -34,6 +35,7 @@ const TIPOS: { value: TipoCampo; label: string }[] = [
   { value: 'lista_suspensa', label: 'Lista suspensa' },
   { value: 'numero', label: 'Número' },
   { value: 'data', label: 'Data' },
+  { value: 'moeda', label: 'Valor em R$' },
 ]
 
 const TIPOS_COM_OPCOES: TipoCampo[] = ['multipla_escolha', 'caixa_selecao', 'lista_suspensa']
@@ -370,6 +372,12 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
                 )}
                 {campo.tipo === 'data' && (
                   <Input disabled type="date" className="max-w-[180px] bg-muted/30" />
+                )}
+                {campo.tipo === 'moeda' && (
+                  <div className="flex items-center border rounded-md max-w-[220px] bg-muted/30 overflow-hidden opacity-60">
+                    <span className="px-3 py-2 text-sm font-medium bg-muted text-muted-foreground border-r select-none">R$</span>
+                    <span className="px-3 py-2 text-sm text-muted-foreground">0,00</span>
+                  </div>
                 )}
 
                 {TIPOS_COM_OPCOES.includes(campo.tipo) && (
