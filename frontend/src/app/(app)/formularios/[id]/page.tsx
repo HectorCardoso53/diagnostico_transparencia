@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, Send, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, Plus, Send, Star, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -46,6 +46,13 @@ interface CampoBuilder {
   label: string
   obrigatorio: boolean
   opcoes: string[]
+  reutilizavel: boolean
+}
+
+interface BancoCampo {
+  formId: string
+  formTitulo: string
+  campo: CampoBuilder
 }
 
 interface Formulario {
@@ -82,7 +89,7 @@ function genId(): string {
 }
 
 function newCampo(): CampoBuilder {
-  return { id: genId(), tipo: 'texto', label: '', obrigatorio: false, opcoes: [] }
+  return { id: genId(), tipo: 'texto', label: '', obrigatorio: false, opcoes: [], reutilizavel: false }
 }
 
 function schemaToBuilder(schema: Record<string, unknown>): CampoBuilder[] {
@@ -94,16 +101,18 @@ function schemaToBuilder(schema: Record<string, unknown>): CampoBuilder[] {
     label: String(c.label ?? ''),
     obrigatorio: Boolean(c.obrigatorio ?? false),
     opcoes: Array.isArray(c.opcoes) ? (c.opcoes as unknown[]).map(String) : [],
+    reutilizavel: Boolean(c.reutilizavel ?? false),
   }))
 }
 
 function builderToSchema(campos: CampoBuilder[]): Record<string, unknown> {
   return {
-    campos: campos.map(({ id, tipo, label, obrigatorio, opcoes }) => ({
+    campos: campos.map(({ id, tipo, label, obrigatorio, opcoes, reutilizavel }) => ({
       id,
       tipo,
       label,
       obrigatorio,
+      reutilizavel,
       ...(TIPOS_COM_OPCOES.includes(tipo) ? { opcoes } : {}),
     })),
   }
@@ -123,6 +132,9 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
   const [atribForm, setAtribForm] = useState({ diretoria_id: '', prazo: '' })
   const [atribSaving, setAtribSaving] = useState(false)
   const [diretorias, setDiretorias] = useState<Diretoria[]>([])
+  const [bancoOpen, setBancoOpen] = useState(false)
+  const [bancoItems, setBancoItems] = useState<BancoCampo[]>([])
+  const [bancoSelected, setBancoSelected] = useState<Set<string>>(new Set())
 
   useEffect(() => { params.then((p) => setId(p.id)) }, [params])
 
@@ -219,6 +231,40 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
     } finally {
       setAtribSaving(false)
     }
+  }
+
+  async function loadBanco() {
+    try {
+      const forms = await api.get<Array<{ id: string; titulo: string; schema_json: Record<string, unknown> }>>('/formularios')
+      const items: BancoCampo[] = []
+      for (const f of forms) {
+        if (f.id === id) continue
+        const cs = schemaToBuilder(f.schema_json)
+        for (const c of cs) {
+          if (c.reutilizavel) items.push({ formId: f.id, formTitulo: f.titulo, campo: c })
+        }
+      }
+      setBancoItems(items)
+    } catch {
+      toast.error('Erro ao carregar banco de perguntas')
+    }
+  }
+
+  function toggleBancoSelect(key: string) {
+    setBancoSelected((prev) => {
+      const next = new Set(prev)
+      next.has(key) ? next.delete(key) : next.add(key)
+      return next
+    })
+  }
+
+  function addFromBanco() {
+    const toAdd = bancoItems
+      .filter((item) => bancoSelected.has(`${item.formId}:${item.campo.id}`))
+      .map((item) => ({ ...item.campo, id: genId(), reutilizavel: false }))
+    setCampos((prev) => [...prev, ...toAdd])
+    setBancoSelected(new Set())
+    setBancoOpen(false)
   }
 
   // ─── Campo mutations ─────────────────────────────────────────────────────
@@ -427,8 +473,19 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
                 )}
               </div>
 
-              {/* Rodapé: obrigatório */}
-              <div className="flex items-center justify-end pt-2 border-t">
+              {/* Rodapé: obrigatório + reutilizável */}
+              <div className="flex items-center justify-between pt-2 border-t">
+                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={campo.reutilizavel}
+                    onChange={(e) => updateCampo(campo.id, { reutilizavel: e.target.checked })}
+                    disabled={!canEdit}
+                    className="h-4 w-4 rounded accent-amber-500"
+                  />
+                  <Star className={`h-3.5 w-3.5 ${campo.reutilizavel ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground'}`} />
+                  <span className={campo.reutilizavel ? 'text-amber-600 font-medium' : ''}>Reutilizável</span>
+                </label>
                 <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -443,15 +500,24 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
             </div>
           ))}
 
-          {/* Botão adicionar pergunta */}
+          {/* Botões de ação */}
           {canEdit && (
-            <button
-              onClick={addCampo}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/30 p-5 text-sm text-muted-foreground hover:border-[#0f1b2d]/50 hover:text-[#0f1b2d] transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Adicionar pergunta
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={addCampo}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/30 p-5 text-sm text-muted-foreground hover:border-[#0f1b2d]/50 hover:text-[#0f1b2d] transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar pergunta
+              </button>
+              <button
+                onClick={() => { setBancoSelected(new Set()); setBancoOpen(true); loadBanco() }}
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-300 p-5 text-sm text-amber-600 hover:border-amber-500 hover:bg-amber-50 transition-colors px-6"
+              >
+                <BookOpen className="h-4 w-4" />
+                Banco de perguntas
+              </button>
+            </div>
           )}
 
           {campos.length === 0 && !canEdit && (
@@ -494,6 +560,83 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
+
+      {/* Dialog: banco de perguntas */}
+      <Dialog open={bancoOpen} onOpenChange={setBancoOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-amber-500" />
+              Banco de perguntas reutilizáveis
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-3 py-2 pr-1">
+            {bancoItems.length === 0 ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                <Star className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+                <p>Nenhuma pergunta reutilizável encontrada.</p>
+                <p className="mt-1 text-xs">Marque perguntas como <span className="font-medium text-amber-600">Reutilizável</span> em qualquer formulário para vê-las aqui.</p>
+              </div>
+            ) : (
+              (() => {
+                const agrupado = bancoItems.reduce<Record<string, BancoCampo[]>>((acc, item) => {
+                  if (!acc[item.formTitulo]) acc[item.formTitulo] = []
+                  acc[item.formTitulo].push(item)
+                  return acc
+                }, {})
+                return Object.entries(agrupado).map(([titulo, items]) => (
+                  <div key={titulo}>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">{titulo}</p>
+                    <div className="space-y-1.5">
+                      {items.map((item) => {
+                        const key = `${item.formId}:${item.campo.id}`
+                        const selected = bancoSelected.has(key)
+                        return (
+                          <label
+                            key={key}
+                            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selected ? 'border-amber-400 bg-amber-50' : 'hover:bg-muted/40'}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => toggleBancoSelect(key)}
+                              className="mt-0.5 h-4 w-4 rounded accent-amber-500"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium leading-snug">{item.campo.label || <span className="italic text-muted-foreground">Sem título</span>}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {item.campo.tipo === 'texto' ? 'Resposta curta' :
+                                 item.campo.tipo === 'paragrafo' ? 'Parágrafo' :
+                                 item.campo.tipo === 'multipla_escolha' ? 'Múltipla escolha' :
+                                 item.campo.tipo === 'caixa_selecao' ? 'Caixas de seleção' :
+                                 item.campo.tipo === 'lista_suspensa' ? 'Lista suspensa' :
+                                 item.campo.tipo === 'numero' ? 'Número' :
+                                 item.campo.tipo === 'data' ? 'Data' :
+                                 item.campo.tipo === 'moeda' ? 'Valor em R$' : item.campo.tipo}
+                                {item.campo.obrigatorio && ' · Obrigatório'}
+                              </p>
+                            </div>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))
+              })()
+            )}
+          </div>
+          <DialogFooter className="border-t pt-3">
+            <Button variant="outline" onClick={() => setBancoOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={addFromBanco}
+              disabled={bancoSelected.size === 0}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              Inserir {bancoSelected.size > 0 ? `${bancoSelected.size} ` : ''}pergunta{bancoSelected.size !== 1 ? 's' : ''}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog: atribuir diretoria */}
       <Dialog open={atribOpen} onOpenChange={setAtribOpen}>
