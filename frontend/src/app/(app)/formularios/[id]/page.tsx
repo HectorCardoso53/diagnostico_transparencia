@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, BookOpen, Plus, Send, Star, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, Copy, Plus, Send, Star, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -299,6 +299,17 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
     ))
   }
 
+  function duplicarCampo(campoId: string) {
+    setCampos((prev) => {
+      const idx = prev.findIndex((c) => c.id === campoId)
+      if (idx === -1) return prev
+      const copia = { ...prev[idx], id: genId(), reutilizavel: false }
+      const next = [...prev]
+      next.splice(idx + 1, 0, copia)
+      return next
+    })
+  }
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (!formulario) return <div className="p-6 text-muted-foreground">Carregando...</div>
@@ -394,14 +405,25 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
                   </Select>
                 </div>
                 {canEdit && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="text-muted-foreground hover:text-destructive shrink-0 mt-1"
-                    onClick={() => removeCampo(campo.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1 shrink-0 mt-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-foreground"
+                      title="Duplicar pergunta"
+                      onClick={() => duplicarCampo(campo.id)}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => removeCampo(campo.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
               </div>
 
