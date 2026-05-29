@@ -1,8 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext, verticalListSortingStrategy, arrayMove, useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, BookOpen, Copy, Plus, Send, Star, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, Copy, GripVertical, Plus, Send, Star, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -118,6 +126,133 @@ function builderToSchema(campos: CampoBuilder[]): Record<string, unknown> {
   }
 }
 
+// ─── Campo card sortável ───────────────────────────────────────────────────────
+
+interface CampoCardProps {
+  campo: CampoBuilder
+  idx: number
+  canEdit: boolean
+  onUpdate: (id: string, patch: Partial<CampoBuilder>) => void
+  onRemove: (id: string) => void
+  onDuplicate: (id: string) => void
+  onAddOpcao: (id: string) => void
+  onUpdateOpcao: (id: string, i: number, v: string) => void
+  onRemoveOpcao: (id: string, i: number) => void
+}
+
+function CampoCard({ campo, idx, canEdit, onUpdate, onRemove, onDuplicate, onAddOpcao, onUpdateOpcao, onRemoveOpcao }: CampoCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: campo.id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.45 : 1 }}
+      className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow p-5 space-y-4"
+    >
+      {/* Linha superior: grip + label + tipo + ações */}
+      <div className="flex items-start gap-2">
+        {canEdit && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="shrink-0 mt-2 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+            tabIndex={-1}
+            title="Arrastar para reordenar"
+          >
+            <GripVertical className="h-5 w-5" />
+          </button>
+        )}
+        <div className="flex-1 space-y-3">
+          <Input
+            placeholder={`Pergunta ${idx + 1}`}
+            value={campo.label}
+            onChange={(e) => onUpdate(campo.id, { label: e.target.value })}
+            disabled={!canEdit}
+            className="font-medium text-base"
+          />
+          <Select
+            value={campo.tipo}
+            onValueChange={(v) => onUpdate(campo.id, { tipo: v as TipoCampo, opcoes: [] })}
+            disabled={!canEdit}
+          >
+            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {TIPOS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        {canEdit && (
+          <div className="flex gap-1 shrink-0 mt-1">
+            <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-foreground" title="Duplicar" onClick={() => onDuplicate(campo.id)}>
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => onRemove(campo.id)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Preview */}
+      <div className="pl-1">
+        {campo.tipo === 'texto' && <Input disabled placeholder="Resposta curta" className="max-w-xs bg-muted/30 text-muted-foreground" />}
+        {campo.tipo === 'paragrafo' && <Textarea disabled placeholder="Resposta longa..." rows={3} className="bg-muted/30 text-muted-foreground" />}
+        {campo.tipo === 'numero' && <Input disabled type="number" placeholder="0" className="max-w-[120px] bg-muted/30" />}
+        {campo.tipo === 'data' && <Input disabled type="date" className="max-w-[180px] bg-muted/30" />}
+        {campo.tipo === 'moeda' && (
+          <div className="flex items-center border rounded-md max-w-[220px] bg-muted/30 overflow-hidden opacity-60">
+            <span className="px-3 py-2 text-sm font-medium bg-muted text-muted-foreground border-r select-none">R$</span>
+            <span className="px-3 py-2 text-sm text-muted-foreground">0,00</span>
+          </div>
+        )}
+        {TIPOS_COM_OPCOES.includes(campo.tipo) && (
+          <div className="space-y-2">
+            {campo.opcoes.map((opcao, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="shrink-0 w-4 h-4 border-2 border-muted-foreground bg-background"
+                  style={{ borderRadius: campo.tipo === 'caixa_selecao' ? '4px' : campo.tipo === 'multipla_escolha' ? '50%' : '2px' }} />
+                <Input value={opcao} onChange={(e) => onUpdateOpcao(campo.id, i, e.target.value)}
+                  placeholder={`Opção ${i + 1}`} disabled={!canEdit} className="h-8 max-w-xs" />
+                {canEdit && (
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => onRemoveOpcao(campo.id, i)}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            {canEdit && (
+              <button onClick={() => onAddOpcao(campo.id)}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pl-6 mt-1">
+                <div className="w-4 h-4 border-2 border-dashed border-muted-foreground shrink-0"
+                  style={{ borderRadius: campo.tipo === 'caixa_selecao' ? '4px' : campo.tipo === 'multipla_escolha' ? '50%' : '2px' }} />
+                Adicionar opção
+              </button>
+            )}
+            {campo.opcoes.length === 0 && canEdit && <p className="text-xs text-muted-foreground pl-6">Adicione pelo menos uma opção</p>}
+          </div>
+        )}
+      </div>
+
+      {/* Rodapé */}
+      <div className="flex items-center justify-between pt-2 border-t">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+          <input type="checkbox" checked={campo.reutilizavel}
+            onChange={(e) => onUpdate(campo.id, { reutilizavel: e.target.checked })}
+            disabled={!canEdit} className="h-4 w-4 rounded accent-amber-500" />
+          <Star className={`h-3.5 w-3.5 ${campo.reutilizavel ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground'}`} />
+          <span className={campo.reutilizavel ? 'text-amber-600 font-medium' : ''}>Reutilizável</span>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+          <input type="checkbox" checked={campo.obrigatorio}
+            onChange={(e) => onUpdate(campo.id, { obrigatorio: e.target.checked })}
+            disabled={!canEdit} className="h-4 w-4 rounded" />
+          Obrigatório
+        </label>
+      </div>
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function FormularioDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -135,6 +270,18 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
   const [bancoOpen, setBancoOpen] = useState(false)
   const [bancoItems, setBancoItems] = useState<BancoCampo[]>([])
   const [bancoSelected, setBancoSelected] = useState<Set<string>>(new Set())
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setCampos((prev) => {
+      const from = prev.findIndex((c) => c.id === active.id)
+      const to   = prev.findIndex((c) => c.id === over.id)
+      return arrayMove(prev, from, to)
+    })
+  }
 
   useEffect(() => { params.then((p) => setId(p.id)) }, [params])
 
@@ -376,151 +523,24 @@ export default function FormularioDetailPage({ params }: { params: Promise<{ id:
           </div>
 
           {/* Perguntas */}
-          {campos.map((campo, idx) => (
-            <div key={campo.id} className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow p-5 space-y-4">
-
-              {/* Linha superior: label + tipo + excluir */}
-              <div className="flex items-start gap-3">
-                <div className="flex-1 space-y-3">
-                  <Input
-                    placeholder={`Pergunta ${idx + 1}`}
-                    value={campo.label}
-                    onChange={(e) => updateCampo(campo.id, { label: e.target.value })}
-                    disabled={!canEdit}
-                    className="font-medium text-base"
-                  />
-                  <Select
-                    value={campo.tipo}
-                    onValueChange={(v) => updateCampo(campo.id, { tipo: v as TipoCampo, opcoes: [] })}
-                    disabled={!canEdit}
-                  >
-                    <SelectTrigger className="w-52">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TIPOS.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {canEdit && (
-                  <div className="flex gap-1 shrink-0 mt-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="text-muted-foreground hover:text-foreground"
-                      title="Duplicar pergunta"
-                      onClick={() => duplicarCampo(campo.id)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => removeCampo(campo.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Preview do tipo de campo */}
-              <div className="pl-1">
-                {campo.tipo === 'texto' && (
-                  <Input disabled placeholder="Resposta curta" className="max-w-xs bg-muted/30 text-muted-foreground" />
-                )}
-                {campo.tipo === 'paragrafo' && (
-                  <Textarea disabled placeholder="Resposta longa..." rows={3} className="bg-muted/30 text-muted-foreground" />
-                )}
-                {campo.tipo === 'numero' && (
-                  <Input disabled type="number" placeholder="0" className="max-w-[120px] bg-muted/30" />
-                )}
-                {campo.tipo === 'data' && (
-                  <Input disabled type="date" className="max-w-[180px] bg-muted/30" />
-                )}
-                {campo.tipo === 'moeda' && (
-                  <div className="flex items-center border rounded-md max-w-[220px] bg-muted/30 overflow-hidden opacity-60">
-                    <span className="px-3 py-2 text-sm font-medium bg-muted text-muted-foreground border-r select-none">R$</span>
-                    <span className="px-3 py-2 text-sm text-muted-foreground">0,00</span>
-                  </div>
-                )}
-
-                {TIPOS_COM_OPCOES.includes(campo.tipo) && (
-                  <div className="space-y-2">
-                    {campo.opcoes.map((opcao, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        {/* Indicador visual do tipo */}
-                        <div
-                          className="shrink-0 w-4 h-4 border-2 border-muted-foreground bg-background"
-                          style={{ borderRadius: campo.tipo === 'caixa_selecao' ? '4px' : campo.tipo === 'multipla_escolha' ? '50%' : '2px' }}
-                        />
-                        <Input
-                          value={opcao}
-                          onChange={(e) => updateOpcao(campo.id, i, e.target.value)}
-                          placeholder={`Opção ${i + 1}`}
-                          disabled={!canEdit}
-                          className="h-8 max-w-xs"
-                        />
-                        {canEdit && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                            onClick={() => removeOpcao(campo.id, i)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    {canEdit && (
-                      <button
-                        onClick={() => addOpcao(campo.id)}
-                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pl-6 mt-1"
-                      >
-                        <div
-                          className="w-4 h-4 border-2 border-dashed border-muted-foreground shrink-0"
-                          style={{ borderRadius: campo.tipo === 'caixa_selecao' ? '4px' : campo.tipo === 'multipla_escolha' ? '50%' : '2px' }}
-                        />
-                        Adicionar opção
-                      </button>
-                    )}
-                    {campo.opcoes.length === 0 && canEdit && (
-                      <p className="text-xs text-muted-foreground pl-6">Adicione pelo menos uma opção</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Rodapé: obrigatório + reutilizável */}
-              <div className="flex items-center justify-between pt-2 border-t">
-                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={campo.reutilizavel}
-                    onChange={(e) => updateCampo(campo.id, { reutilizavel: e.target.checked })}
-                    disabled={!canEdit}
-                    className="h-4 w-4 rounded accent-amber-500"
-                  />
-                  <Star className={`h-3.5 w-3.5 ${campo.reutilizavel ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground'}`} />
-                  <span className={campo.reutilizavel ? 'text-amber-600 font-medium' : ''}>Reutilizável</span>
-                </label>
-                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={campo.obrigatorio}
-                    onChange={(e) => updateCampo(campo.id, { obrigatorio: e.target.checked })}
-                    disabled={!canEdit}
-                    className="h-4 w-4 rounded"
-                  />
-                  Obrigatório
-                </label>
-              </div>
-            </div>
-          ))}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={campos.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+              {campos.map((campo, idx) => (
+                <CampoCard
+                  key={campo.id}
+                  campo={campo}
+                  idx={idx}
+                  canEdit={canEdit}
+                  onUpdate={updateCampo}
+                  onRemove={removeCampo}
+                  onDuplicate={duplicarCampo}
+                  onAddOpcao={addOpcao}
+                  onUpdateOpcao={updateOpcao}
+                  onRemoveOpcao={removeOpcao}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
 
           {/* Botões de ação */}
           {canEdit && (
