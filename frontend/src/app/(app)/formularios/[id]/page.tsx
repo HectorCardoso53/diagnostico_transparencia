@@ -10,15 +10,15 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, BookOpen, Copy, GripVertical, Plus, Send, Star, Trash2, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, Copy, GripVertical, Paperclip, Plus, Send, Star, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
@@ -55,6 +55,7 @@ interface CampoBuilder {
   obrigatorio: boolean
   opcoes: string[]
   reutilizavel: boolean
+  permite_anexo: boolean
 }
 
 interface BancoCampo {
@@ -97,7 +98,7 @@ function genId(): string {
 }
 
 function newCampo(): CampoBuilder {
-  return { id: genId(), tipo: 'texto', label: '', obrigatorio: false, opcoes: [], reutilizavel: false }
+  return { id: genId(), tipo: 'texto', label: '', obrigatorio: false, opcoes: [], reutilizavel: false, permite_anexo: false }
 }
 
 function schemaToBuilder(schema: Record<string, unknown>): CampoBuilder[] {
@@ -110,17 +111,19 @@ function schemaToBuilder(schema: Record<string, unknown>): CampoBuilder[] {
     obrigatorio: Boolean(c.obrigatorio ?? false),
     opcoes: Array.isArray(c.opcoes) ? (c.opcoes as unknown[]).map(String) : [],
     reutilizavel: Boolean(c.reutilizavel ?? false),
+    permite_anexo: Boolean(c.permite_anexo ?? false),
   }))
 }
 
 function builderToSchema(campos: CampoBuilder[]): Record<string, unknown> {
   return {
-    campos: campos.map(({ id, tipo, label, obrigatorio, opcoes, reutilizavel }) => ({
+    campos: campos.map(({ id, tipo, label, obrigatorio, opcoes, reutilizavel, permite_anexo }) => ({
       id,
       tipo,
       label,
       obrigatorio,
       reutilizavel,
+      permite_anexo,
       ...(TIPOS_COM_OPCOES.includes(tipo) ? { opcoes } : {}),
     })),
   }
@@ -163,12 +166,18 @@ function CampoCard({ campo, idx, canEdit, onUpdate, onRemove, onDuplicate, onAdd
           </button>
         )}
         <div className="flex-1 space-y-3">
-          <Input
+          <Textarea
             placeholder={`Pergunta ${idx + 1}`}
             value={campo.label}
+            rows={1}
             onChange={(e) => onUpdate(campo.id, { label: e.target.value })}
+            onInput={(e) => {
+              const el = e.currentTarget
+              el.style.height = 'auto'
+              el.style.height = `${el.scrollHeight}px`
+            }}
             disabled={!canEdit}
-            className="font-medium text-base"
+            className="font-medium text-base resize-none overflow-hidden min-h-0 py-2"
           />
           <Select
             value={campo.tipo}
@@ -233,14 +242,31 @@ function CampoCard({ campo, idx, canEdit, onUpdate, onRemove, onDuplicate, onAdd
         )}
       </div>
 
+      {/* Preview de anexo */}
+      {campo.permite_anexo && (
+        <div className="pl-1">
+          <div className="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 max-w-xs bg-muted/20 text-muted-foreground opacity-60">
+            <Paperclip className="h-4 w-4 shrink-0" />
+            <span className="text-sm">Anexar arquivo</span>
+          </div>
+        </div>
+      )}
+
       {/* Rodapé */}
-      <div className="flex items-center justify-between pt-2 border-t">
+      <div className="flex items-center justify-between pt-2 border-t flex-wrap gap-2">
         <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
           <input type="checkbox" checked={campo.reutilizavel}
             onChange={(e) => onUpdate(campo.id, { reutilizavel: e.target.checked })}
             disabled={!canEdit} className="h-4 w-4 rounded accent-amber-500" />
           <Star className={`h-3.5 w-3.5 ${campo.reutilizavel ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground'}`} />
           <span className={campo.reutilizavel ? 'text-amber-600 font-medium' : ''}>Reutilizável</span>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+          <input type="checkbox" checked={campo.permite_anexo}
+            onChange={(e) => onUpdate(campo.id, { permite_anexo: e.target.checked })}
+            disabled={!canEdit} className="h-4 w-4 rounded accent-blue-500" />
+          <Paperclip className={`h-3.5 w-3.5 ${campo.permite_anexo ? 'text-blue-500' : 'text-muted-foreground'}`} />
+          <span className={campo.permite_anexo ? 'text-blue-600 font-medium' : ''}>Permite anexo</span>
         </label>
         <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
           <input type="checkbox" checked={campo.obrigatorio}

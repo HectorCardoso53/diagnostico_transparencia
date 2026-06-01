@@ -70,6 +70,8 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
       PORT: 3001
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
     volumes:
       - ./backend:/app
       - /app/node_modules          # evita sobrescrever node_modules do container

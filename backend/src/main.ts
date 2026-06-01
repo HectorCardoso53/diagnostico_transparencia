@@ -11,12 +11,21 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const allowedOrigins = process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',')
+    ? process.env.FRONTEND_URL.split(',').map((o) => o.trim())
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004', 'http://localhost'];
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Permite requisições sem Origin (ex: curl, Postman, server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origem não permitida: ${origin}`));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   await app.listen(process.env.PORT ?? 3001);
