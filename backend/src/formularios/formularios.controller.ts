@@ -54,6 +54,7 @@ export class FormulariosController {
   }
 
   @Patch('reordenar')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   reordenar(
     @Body() body: { items: { id: string; posicao: number }[] },
