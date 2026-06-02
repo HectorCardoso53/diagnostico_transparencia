@@ -13,6 +13,8 @@ FROM base AS development
 COPY package*.json ./
 RUN npm install
 COPY . .
+COPY prisma ./prisma
+COPY prisma.config.ts ./
 RUN npx prisma generate
 EXPOSE 3001
 CMD ["npm", "run", "start:dev"]
@@ -22,6 +24,8 @@ FROM base AS build
 COPY package*.json ./
 RUN npm ci
 COPY . .
+COPY prisma ./prisma
+COPY prisma.config.ts ./
 RUN npx prisma generate
 RUN npm run build
 
