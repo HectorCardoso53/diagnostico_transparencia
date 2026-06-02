@@ -408,7 +408,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
                           <input
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png"
-                            className="sr-only"
+                            className="hidden"
                             disabled={uploading[key]}
                             onChange={(e) => handleUpload(key, e.target.files?.[0])}
                           />
