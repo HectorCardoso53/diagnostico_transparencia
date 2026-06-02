@@ -536,10 +536,12 @@ export type DiretoriaCreateNestedOneWithoutRespostasInput = {
   connect?: Prisma.DiretoriaWhereUniqueInput
 }
 
-export type DiretoriaUpdateOneRequiredWithoutRespostasNestedInput = {
+export type DiretoriaUpdateOneWithoutRespostasNestedInput = {
   create?: Prisma.XOR<Prisma.DiretoriaCreateWithoutRespostasInput, Prisma.DiretoriaUncheckedCreateWithoutRespostasInput>
   connectOrCreate?: Prisma.DiretoriaCreateOrConnectWithoutRespostasInput
   upsert?: Prisma.DiretoriaUpsertWithoutRespostasInput
+  disconnect?: Prisma.DiretoriaWhereInput | boolean
+  delete?: Prisma.DiretoriaWhereInput | boolean
   connect?: Prisma.DiretoriaWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.DiretoriaUpdateToOneWithWhereWithoutRespostasInput, Prisma.DiretoriaUpdateWithoutRespostasInput>, Prisma.DiretoriaUncheckedUpdateWithoutRespostasInput>
 }

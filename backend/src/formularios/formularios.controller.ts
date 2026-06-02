@@ -53,6 +53,15 @@ export class FormulariosController {
     return this.service.create(dto, user);
   }
 
+  @Patch('reordenar')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  reordenar(
+    @Body() body: { items: { id: string; posicao: number }[] },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.reordenar(body.items, user);
+  }
+
   @Patch(':id')
   @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO)
   update(

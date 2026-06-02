@@ -71,7 +71,6 @@ export class RespostasService {
   }
 
   async create(dto: CreateRespostaDto, user: CurrentUser) {
-    // Verifica se o formulário está publicado
     const form = await this.prisma.formSchema.findUnique({
       where: { id: dto.form_id },
     });
@@ -79,7 +78,33 @@ export class RespostasService {
     if (form.status !== 'PUBLICADO')
       throw new BadRequestException('Formulário não está publicado');
 
-    // Verifica se a diretoria tem o formulário atribuído
+    // Resposta de secretário (sem diretoria)
+    if (!dto.diretoria_id) {
+      if (user.role !== Role.SECRETARIO)
+        throw new ForbiddenException(
+          'Apenas secretários podem responder formulários sem diretoria',
+        );
+      if (form.secretaria_id !== user.secretaria_id)
+        throw new ForbiddenException('Sem acesso a este formulário');
+
+      const existente = await this.prisma.formResponse.findFirst({
+        where: { form_id: dto.form_id, diretoria_id: null },
+      });
+      if (existente)
+        throw new BadRequestException('Já existe uma resposta para este formulário');
+
+      return this.prisma.formResponse.create({
+        data: {
+          form_id: dto.form_id,
+          diretoria_id: null,
+          user_id: user.id,
+          dados_json: dto.dados_json as any,
+          status: ResponseStatus.RASCUNHO,
+        },
+      });
+    }
+
+    // Resposta de diretoria
     const atribuicao = await this.prisma.formAtribuicao.findUnique({
       where: {
         form_id_diretoria_id: {
@@ -93,7 +118,6 @@ export class RespostasService {
         'Formulário não atribuído a esta diretoria',
       );
 
-    // Impede duplicata: cada diretoria só pode ter uma resposta por formulário
     const existente = await this.prisma.formResponse.findFirst({
       where: { form_id: dto.form_id, diretoria_id: dto.diretoria_id },
     });
@@ -102,7 +126,6 @@ export class RespostasService {
         'Já existe uma resposta para este formulário nesta diretoria',
       );
 
-    // OPERADOR e DIRETOR só podem criar respostas para sua própria diretoria
     if (
       ([Role.OPERADOR, Role.DIRETOR] as Role[]).includes(user.role) &&
       user.diretoria_id !== dto.diretoria_id
@@ -159,7 +182,6 @@ export class RespostasService {
   async revisar(id: string, dto: RevisarRespostaDto, user: CurrentUser) {
     const r = await this.assertExists(id);
 
-    // Revisor deve pertencer à secretaria ou diretoria do formulário
     this.assertRevisaoAccess(r, user);
 
     if (r.status === ResponseStatus.RASCUNHO)
@@ -197,11 +219,12 @@ export class RespostasService {
   }
 
   private assertReadAccess(
-    r: { user_id: string; diretoria_id: string },
+    r: { user_id: string; diretoria_id: string | null },
     user: CurrentUser,
   ) {
     const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN];
     if (adminRoles.includes(user.role)) return;
+    if (user.role === Role.SECRETARIO) return;
     if (user.role === Role.OPERADOR && r.user_id !== user.id)
       throw new ForbiddenException('Sem permissão para visualizar esta resposta');
     if (
@@ -212,12 +235,12 @@ export class RespostasService {
   }
 
   private assertRevisaoAccess(
-    r: { diretoria_id: string },
+    r: { diretoria_id: string | null },
     user: CurrentUser,
   ) {
     const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO];
     if (adminRoles.includes(user.role)) return;
-    if (user.role === Role.DIRETOR && user.diretoria_id === r.diretoria_id)
+    if (user.role === Role.DIRETOR && r.diretoria_id && user.diretoria_id === r.diretoria_id)
       return;
     throw new ForbiddenException('Sem permissão para revisar esta resposta');
   }

@@ -3,8 +3,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Eye, MoreHorizontal, Plus, Trash2, Archive, ClipboardList, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  Eye, MoreHorizontal, Plus, Trash2, Archive, ClipboardList,
+  CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, GripVertical,
+} from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  DndContext, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { formatDate } from '@/lib/utils'
@@ -12,9 +23,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle,
+} from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel,
+  SelectSeparator, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -40,7 +57,7 @@ interface Atribuicao {
 interface Resposta {
   id: string
   status: string
-  diretoria_id: string
+  diretoria_id: string | null
   enviado_em: string | null
   usuario: { nome: string } | null
 }
@@ -52,6 +69,7 @@ interface Formulario {
   schema_json: { campos?: Campo[] } | null
   status: string
   versao: number
+  posicao: number
   publicado_em: string | null
   created_at: string
   criador: { nome: string } | null
@@ -82,6 +100,13 @@ function statusIcon(status: string) {
   if (status === 'ENVIADO' || status === 'EM_REVISAO') return <Clock className="h-4 w-4 text-yellow-500" />
   if (status === 'REPROVADO') return <AlertCircle className="h-4 w-4 text-red-500" />
   return <ClipboardList className="h-4 w-4 text-muted-foreground" />
+}
+
+const TIPO_LABEL: Record<string, string> = {
+  texto: 'Resposta curta', paragrafo: 'Parágrafo', textarea: 'Parágrafo',
+  multipla_escolha: 'Múltipla escolha', caixa_selecao: 'Caixas de seleção',
+  lista_suspensa: 'Lista suspensa', select: 'Lista suspensa',
+  numero: 'Número', data: 'Data', booleano: 'Sim/Não', moeda: 'Valor em R$',
 }
 
 /* ── Painel para DIRETOR/OPERADOR ─────────────────────────── */
@@ -167,16 +192,73 @@ function PainelDiretor({ items, diretoriaId }: { items: Formulario[]; diretoriaI
   )
 }
 
-const TIPO_LABEL: Record<string, string> = {
-  texto: 'Resposta curta', paragrafo: 'Parágrafo', textarea: 'Parágrafo',
-  multipla_escolha: 'Múltipla escolha', caixa_selecao: 'Caixas de seleção',
-  lista_suspensa: 'Lista suspensa', select: 'Lista suspensa',
-  numero: 'Número', data: 'Data', booleano: 'Sim/Não', moeda: 'Valor em R$',
+/* ── Card de formulário que o secretário preenche diretamente ── */
+function CardSecretarioResponde({ f }: { f: Formulario }) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+
+  const resp = f.respostas.find(r => r.diretoria_id === null)
+
+  async function abrirFormulario() {
+    if (resp) { router.push(`/respostas/${resp.id}`); return }
+    setLoading(true)
+    try {
+      const nova = await api.post<{ id: string }>('/respostas', {
+        form_id: f.id, dados_json: {},
+      })
+      router.push(`/respostas/${nova.id}`)
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao abrir formulário')
+      setLoading(false)
+    }
+  }
+
+  const btnLabel = loading ? 'Carregando...'
+    : !resp                       ? 'Preencher formulário'
+    : resp.status === 'RASCUNHO'  ? 'Continuar preenchendo'
+    : resp.status === 'REPROVADO' ? 'Ver resposta reprovada'
+    : resp.status === 'APROVADO'  ? 'Ver formulário aprovado'
+    : 'Ver resposta enviada'
+
+  return (
+    <Card className="border shadow-sm flex flex-col">
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-base font-semibold leading-tight">{f.titulo}</CardTitle>
+          {resp ? (
+            <Badge variant={RESP_VARIANT[resp.status] ?? 'secondary'} className="shrink-0 text-[11px]">
+              {statusIcon(resp.status)}
+              <span className="ml-1">{RESP_LABEL[resp.status] ?? resp.status}</span>
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="shrink-0 text-[11px]">Aguardando resposta</Badge>
+          )}
+        </div>
+        {f.descricao && <p className="text-xs text-muted-foreground mt-1">{f.descricao}</p>}
+      </CardHeader>
+      <CardContent className="space-y-3 flex-1 flex flex-col justify-end">
+        <p className="text-[11px] text-muted-foreground">
+          Publicado em {f.publicado_em ? formatDate(f.publicado_em) : '—'} · v{f.versao}
+        </p>
+        <Button
+          className="w-full"
+          variant={resp?.status === 'APROVADO' ? 'outline' : 'default'}
+          disabled={loading}
+          onClick={abrirFormulario}
+        >
+          {btnLabel}
+        </Button>
+      </CardContent>
+    </Card>
+  )
 }
 
 /* ── Painel de formulários para secretários ───────────────── */
 function PainelSecretario({ items }: { items: Formulario[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const semDiretoria = items.filter(f => f.atribuicoes.length === 0)
+  const comDiretoria = items.filter(f => f.atribuicoes.length > 0)
 
   function toggleExpand(id: string) {
     setExpandedId(prev => prev === id ? null : id)
@@ -193,136 +275,258 @@ function PainelSecretario({ items }: { items: Formulario[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      {items.map(f => {
-        const total     = f.atribuicoes.length
-        const aprovadas = f.respostas.filter(r => r.status === 'APROVADO').length
-        const analise   = f.respostas.filter(r => r.status === 'ENVIADO' || r.status === 'EM_REVISAO').length
-        const reprovadas = f.respostas.filter(r => r.status === 'REPROVADO').length
-        const aguardando = total - f.respostas.filter(r => r.status !== 'RASCUNHO').length - aprovadas
-        const enviadas  = f.respostas.filter(r => r.status !== 'RASCUNHO').length
+    <div className="space-y-8">
+      {/* Formulários que o secretário responde diretamente */}
+      {semDiretoria.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold">Para preencher</h2>
+            <p className="text-xs text-muted-foreground">
+              Formulários sem diretoria atribuída são de sua responsabilidade.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {semDiretoria.map(f => <CardSecretarioResponde key={f.id} f={f} />)}
+          </div>
+        </section>
+      )}
 
-        return (
-          <Card key={f.id} className="border shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <CardTitle className="text-base font-semibold">{f.titulo}</CardTitle>
-                  {f.descricao && <p className="text-xs text-muted-foreground mt-1">{f.descricao}</p>}
-                </div>
-                <p className="text-xs text-muted-foreground shrink-0">
-                  Publicado em {f.publicado_em ? formatDate(f.publicado_em) : '—'}
-                </p>
-              </div>
+      {/* Acompanhamento das diretorias */}
+      {comDiretoria.length > 0 && (
+        <section className="space-y-3">
+          {semDiretoria.length > 0 && (
+            <div>
+              <h2 className="text-sm font-semibold">Acompanhamento das diretorias</h2>
+              <p className="text-xs text-muted-foreground">
+                Monitore o status das respostas das diretorias abaixo.
+              </p>
+            </div>
+          )}
+          <div className="space-y-4">
+            {comDiretoria.map(f => {
+              const total      = f.atribuicoes.length
+              const aprovadas  = f.respostas.filter(r => r.status === 'APROVADO').length
+              const analise    = f.respostas.filter(r => r.status === 'ENVIADO' || r.status === 'EM_REVISAO').length
+              const reprovadas = f.respostas.filter(r => r.status === 'REPROVADO').length
+              const enviadas   = f.respostas.filter(r => r.status !== 'RASCUNHO').length
+              const aguardando = total - enviadas - aprovadas
 
-              {/* barra de progresso + contadores */}
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">{enviadas}/{total} diretorias responderam</span>
-                  <button
-                    onClick={() => toggleExpand(f.id)}
-                    className="flex items-center gap-1 text-xs text-primary hover:underline"
-                  >
-                    {expandedId === f.id ? <><ChevronUp className="h-3 w-3" />Ocultar perguntas</> : <><ChevronDown className="h-3 w-3" />Ver perguntas</>}
-                  </button>
-                </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden flex">
-                  {total > 0 && <>
-                    <div className="h-full bg-green-500 transition-all"  style={{ width: `${(aprovadas / total) * 100}%` }} />
-                    <div className="h-full bg-yellow-400 transition-all" style={{ width: `${(analise   / total) * 100}%` }} />
-                    <div className="h-full bg-red-400 transition-all"    style={{ width: `${(reprovadas / total) * 100}%` }} />
-                  </>}
-                </div>
-                <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-                  {aprovadas  > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{aprovadas} aprovada{aprovadas !== 1 ? 's' : ''}</span>}
-                  {analise    > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />{analise} em análise</span>}
-                  {reprovadas > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" />{reprovadas} reprovada{reprovadas !== 1 ? 's' : ''}</span>}
-                  {aguardando > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />{aguardando} aguardando</span>}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              {f.atribuicoes.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">Nenhuma diretoria atribuída</p>
-              ) : (
-                <div className="divide-y rounded-md border overflow-hidden">
-                  {f.atribuicoes.map(({ diretoria, prazo }) => {
-                    const resp = f.respostas.find(r => r.diretoria_id === diretoria.id)
-                    return (
-                      <div key={diretoria.id} className="flex items-center justify-between px-3 py-2.5 bg-background text-sm">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {statusIcon(resp?.status ?? '')}
-                          <div className="min-w-0">
-                            <p className="font-medium truncate">{diretoria.nome}</p>
-                            {resp?.usuario && (
-                              <p className="text-[11px] text-muted-foreground">
-                                Respondido por {resp.usuario.nome}
-                                {resp.enviado_em ? ` · ${formatDate(resp.enviado_em)}` : ''}
-                              </p>
-                            )}
-                            {!resp && prazo && (
-                              <p className="text-[11px] text-muted-foreground">Prazo: {formatDate(prazo)}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="shrink-0 ml-3">
-                          {resp ? (
-                            <Link href={`/respostas/${resp.id}`} className="flex items-center gap-1.5 hover:opacity-80">
-                              <Badge variant={RESP_VARIANT[resp.status] ?? 'secondary'} className="text-[10px] px-1.5 py-0">
-                                {RESP_LABEL[resp.status] ?? resp.status}
-                              </Badge>
-                              <Eye className="h-3 w-3 text-muted-foreground" />
-                            </Link>
-                          ) : (
-                            <span className="text-[11px] text-muted-foreground italic">Aguardando</span>
-                          )}
-                        </div>
+              return (
+                <Card key={f.id} className="border shadow-sm">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <CardTitle className="text-base font-semibold">{f.titulo}</CardTitle>
+                        {f.descricao && <p className="text-xs text-muted-foreground mt-1">{f.descricao}</p>}
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </CardContent>
+                      <p className="text-xs text-muted-foreground shrink-0">
+                        Publicado em {f.publicado_em ? formatDate(f.publicado_em) : '—'}
+                      </p>
+                    </div>
 
-            {/* Perguntas do formulário — expansível */}
-            {expandedId === f.id && (
-              <div className="border-t px-6 py-4 space-y-2 bg-muted/20">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  Perguntas do formulário
-                </p>
-                {(() => {
-                  const campos: Campo[] = (f.schema_json as { campos?: Campo[] } | null)?.campos ?? []
-                  if (campos.length === 0) {
-                    return <p className="text-xs text-muted-foreground italic">Este formulário ainda não possui perguntas.</p>
-                  }
-                  return campos.map((c, i) => (
-                    <div key={c.id ?? c.nome ?? i} className="flex items-start gap-3 py-2 border-b last:border-0">
-                      <span className="text-xs font-bold text-muted-foreground w-5 shrink-0 pt-0.5">{i + 1}.</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium leading-snug">
-                          {c.label}
-                          {c.obrigatorio && <span className="text-destructive ml-1 text-xs">*</span>}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{TIPO_LABEL[c.tipo] ?? c.tipo}</p>
-                        {c.opcoes && c.opcoes.length > 0 && (
-                          <ul className="mt-1 space-y-0.5">
-                            {c.opcoes.map(o => (
-                              <li key={o} className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 inline-block shrink-0" />{o}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{enviadas}/{total} diretorias responderam</span>
+                        <button
+                          onClick={() => toggleExpand(f.id)}
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          {expandedId === f.id
+                            ? <><ChevronUp className="h-3 w-3" />Ocultar perguntas</>
+                            : <><ChevronDown className="h-3 w-3" />Ver perguntas</>}
+                        </button>
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden flex">
+                        {total > 0 && <>
+                          <div className="h-full bg-green-500 transition-all"  style={{ width: `${(aprovadas / total) * 100}%` }} />
+                          <div className="h-full bg-yellow-400 transition-all" style={{ width: `${(analise / total) * 100}%` }} />
+                          <div className="h-full bg-red-400 transition-all"    style={{ width: `${(reprovadas / total) * 100}%` }} />
+                        </>}
+                      </div>
+                      <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+                        {aprovadas  > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />{aprovadas} aprovada{aprovadas !== 1 ? 's' : ''}</span>}
+                        {analise    > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />{analise} em análise</span>}
+                        {reprovadas > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" />{reprovadas} reprovada{reprovadas !== 1 ? 's' : ''}</span>}
+                        {aguardando > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />{aguardando} aguardando</span>}
                       </div>
                     </div>
-                  ))
-                })()}
-              </div>
-            )}
-          </Card>
-        )
-      })}
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="divide-y rounded-md border overflow-hidden">
+                      {f.atribuicoes.map(({ diretoria, prazo }) => {
+                        const resp = f.respostas.find(r => r.diretoria_id === diretoria.id)
+                        return (
+                          <div key={diretoria.id} className="flex items-center justify-between px-3 py-2.5 bg-background text-sm">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {statusIcon(resp?.status ?? '')}
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">{diretoria.nome}</p>
+                                {resp?.usuario && (
+                                  <p className="text-[11px] text-muted-foreground">
+                                    Respondido por {resp.usuario.nome}
+                                    {resp.enviado_em ? ` · ${formatDate(resp.enviado_em)}` : ''}
+                                  </p>
+                                )}
+                                {!resp && prazo && (
+                                  <p className="text-[11px] text-muted-foreground">Prazo: {formatDate(prazo)}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="shrink-0 ml-3">
+                              {resp ? (
+                                <Link href={`/respostas/${resp.id}`} className="flex items-center gap-1.5 hover:opacity-80">
+                                  <Badge variant={RESP_VARIANT[resp.status] ?? 'secondary'} className="text-[10px] px-1.5 py-0">
+                                    {RESP_LABEL[resp.status] ?? resp.status}
+                                  </Badge>
+                                  <Eye className="h-3 w-3 text-muted-foreground" />
+                                </Link>
+                              ) : (
+                                <span className="text-[11px] text-muted-foreground italic">Aguardando</span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+
+                  {expandedId === f.id && (
+                    <div className="border-t px-6 py-4 space-y-2 bg-muted/20">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                        Perguntas do formulário
+                      </p>
+                      {(() => {
+                        const campos: Campo[] = (f.schema_json as { campos?: Campo[] } | null)?.campos ?? []
+                        if (campos.length === 0)
+                          return <p className="text-xs text-muted-foreground italic">Este formulário ainda não possui perguntas.</p>
+                        return campos.map((c, i) => (
+                          <div key={c.id ?? c.nome ?? i} className="flex items-start gap-3 py-2 border-b last:border-0">
+                            <span className="text-xs font-bold text-muted-foreground w-5 shrink-0 pt-0.5">{i + 1}.</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium leading-snug">
+                                {c.label}
+                                {c.obrigatorio && <span className="text-destructive ml-1 text-xs">*</span>}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">{TIPO_LABEL[c.tipo] ?? c.tipo}</p>
+                              {c.opcoes && c.opcoes.length > 0 && (
+                                <ul className="mt-1 space-y-0.5">
+                                  {c.opcoes.map(o => (
+                                    <li key={o} className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 inline-block shrink-0" />{o}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      })()}
+                    </div>
+                  )}
+                </Card>
+              )
+            })}
+          </div>
+        </section>
+      )}
     </div>
+  )
+}
+
+/* ── Linha da tabela admin com suporte a drag ─────────────── */
+function SortableRow({
+  f, canManage, onArquivar, onExcluir,
+}: {
+  f: Formulario
+  canManage: boolean
+  onArquivar: (id: string) => void
+  onExcluir: (f: Formulario) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: f.id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <tr ref={setNodeRef} style={style} className="hover:bg-muted/30">
+      <td className="px-2 py-3 w-8">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground p-1 rounded"
+          aria-label="Arrastar para reordenar"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </td>
+      <td className="px-4 py-3 font-medium">{f.titulo}</td>
+      <td className="px-4 py-3">
+        {f.secretaria ? (
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground">{f.secretaria.sigla}</span>
+            {f.secretaria.tipo !== 'SECRETARIA' && (
+              <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                {f.secretaria.tipo}
+              </span>
+            )}
+          </div>
+        ) : '—'}
+      </td>
+      <td className="px-4 py-3">
+        {f.atribuicoes.length === 0 ? (
+          <span className="text-muted-foreground text-xs">—</span>
+        ) : (
+          <div className="flex flex-wrap gap-1 max-w-[220px]">
+            {f.atribuicoes.slice(0, 3).map(({ diretoria }) => (
+              <span key={diretoria.id} className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground leading-tight">
+                {diretoria.nome}
+              </span>
+            ))}
+            {f.atribuicoes.length > 3 && (
+              <span className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground leading-tight">
+                +{f.atribuicoes.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <Badge variant={STATUS_VARIANT[f.status] ?? 'secondary'}>{STATUS_LABEL[f.status] ?? f.status}</Badge>
+      </td>
+      <td className="px-4 py-3 text-muted-foreground">v{f.versao}</td>
+      <td className="px-4 py-3 text-muted-foreground">{f.criador?.nome ?? '—'}</td>
+      <td className="px-4 py-3 text-muted-foreground">{f.publicado_em ? formatDate(f.publicado_em) : '—'}</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-1">
+          <Button size="icon" variant="ghost" asChild>
+            <Link href={`/formularios/${f.id}`}><Eye className="h-3.5 w-3.5" /></Link>
+          </Button>
+          {canManage && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={`/formularios/${f.id}`}>Editar / Ver</Link>
+                </DropdownMenuItem>
+                {f.status !== 'ARQUIVADO' && (
+                  <DropdownMenuItem onClick={() => onArquivar(f.id)}>
+                    <Archive className="h-3.5 w-3.5 mr-2" />Arquivar
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onExcluir(f)} className="text-destructive focus:text-destructive">
+                  <Trash2 className="h-3.5 w-3.5 mr-2" />Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </td>
+    </tr>
   )
 }
 
@@ -342,10 +546,11 @@ export default function FormulariosPage() {
 
   const isSecretario = user?.role === 'SECRETARIO'
   const isDiretor    = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
-  const isResponder  = isSecretario || isDiretor   // vê painel de resposta
-  const canManage    = !isResponder                 // pode criar/arquivar formulários
+  const isResponder  = isSecretario || isDiretor
+  const canManage    = !isResponder
 
-  /* carrega formulários */
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+
   const load = useCallback(() => {
     const q = new URLSearchParams()
     if (search) q.set('titulo', search)
@@ -363,12 +568,10 @@ export default function FormulariosPage() {
 
   useEffect(() => { load() }, [load])
 
-  /* pré-carrega secretarias para quem pode gerenciar */
   useEffect(() => {
     if (canManage) api.get<Secretaria[]>('/secretarias').then(setSecretarias).catch(() => {})
   }, [canManage])
 
-  /* quando secretaria muda, recarrega diretorias */
   useEffect(() => {
     if (!secretariaId) { setDiretorias([]); setDiretoriasSel([]); return }
     api.get<Diretoria[]>(`/diretorias?secretaria_id=${secretariaId}`)
@@ -420,6 +623,25 @@ export default function FormulariosPage() {
     catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Erro') }
   }
 
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = items.findIndex(f => f.id === active.id)
+    const newIndex = items.findIndex(f => f.id === over.id)
+    const reordered = arrayMove(items, oldIndex, newIndex)
+    setItems(reordered)
+
+    try {
+      await api.patch('/formularios/reordenar', {
+        items: reordered.map((f, i) => ({ id: f.id, posicao: i })),
+      })
+    } catch {
+      toast.error('Erro ao salvar ordem')
+      load()
+    }
+  }
+
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -437,97 +659,41 @@ export default function FormulariosPage() {
       <Input placeholder="Buscar por título..." value={search}
         onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
 
-      {/* diretor vê painel próprio; secretário vê todos os formulários e diretorias; admin vê tabela */}
       {isDiretor ? (
         <PainelDiretor items={items} diretoriaId={user?.diretoria_id ?? ''} />
       ) : isSecretario ? (
         <PainelSecretario items={items} />
       ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                {['Título', 'Órgão', 'Diretorias', 'Status', 'Versão', 'Criador', 'Publicado em', ''].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {items.map((f) => (
-                <tr key={f.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">{f.titulo}</td>
-                  <td className="px-4 py-3">
-                    {f.secretaria ? (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">{f.secretaria.sigla}</span>
-                        {f.secretaria.tipo !== 'SECRETARIA' && (
-                          <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-                            {f.secretaria.tipo}
-                          </span>
-                        )}
-                      </div>
-                    ) : '—'}
-                  </td>
-                  <td className="px-4 py-3">
-                    {f.atribuicoes.length === 0 ? (
-                      <span className="text-muted-foreground text-xs">—</span>
-                    ) : (
-                      <div className="flex flex-wrap gap-1 max-w-[220px]">
-                        {f.atribuicoes.slice(0, 3).map(({ diretoria }) => (
-                          <span key={diretoria.id} className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground leading-tight">
-                            {diretoria.nome}
-                          </span>
-                        ))}
-                        {f.atribuicoes.length > 3 && (
-                          <span className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground leading-tight">
-                            +{f.atribuicoes.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant={STATUS_VARIANT[f.status] ?? 'secondary'}>{STATUS_LABEL[f.status] ?? f.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">v{f.versao}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{f.criador?.nome ?? '—'}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{f.publicado_em ? formatDate(f.publicado_em) : '—'}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <Button size="icon" variant="ghost" asChild>
-                        <Link href={`/formularios/${f.id}`}><Eye className="h-3.5 w-3.5" /></Link>
-                      </Button>
-                      {canManage && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/formularios/${f.id}`}>Editar / Ver</Link>
-                            </DropdownMenuItem>
-                            {f.status !== 'ARQUIVADO' && (
-                              <DropdownMenuItem onClick={() => arquivar(f.id)}>
-                                <Archive className="h-3.5 w-3.5 mr-2" />Arquivar
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => excluir(f)} className="text-destructive focus:text-destructive">
-                              <Trash2 className="h-3.5 w-3.5 mr-2" />Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">Nenhum formulário encontrado</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <SortableContext items={items.map(f => f.id)} strategy={verticalListSortingStrategy}>
+            <div className="rounded-lg border overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-2 py-3 w-8" />
+                    {['Título', 'Órgão', 'Diretorias', 'Status', 'Versão', 'Criador', 'Publicado em', ''].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {items.map((f) => (
+                    <SortableRow
+                      key={f.id}
+                      f={f}
+                      canManage={canManage}
+                      onArquivar={arquivar}
+                      onExcluir={excluir}
+                    />
+                  ))}
+                  {items.length === 0 && (
+                    <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Nenhum formulário encontrado</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* modal criar */}
@@ -549,7 +715,6 @@ export default function FormulariosPage() {
                 rows={2} placeholder="Objetivo do formulário..." />
             </div>
 
-            {/* secretaria — só para admins sem secretaria fixa */}
             {canManage && !user?.secretaria_id && (
               <div className="space-y-1.5">
                 <Label>Órgão responsável *</Label>
@@ -558,7 +723,6 @@ export default function FormulariosPage() {
                     <SelectValue placeholder="Selecione o órgão" />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Órgãos superiores: PGM e Gabinete primeiro */}
                     {secretarias.filter(s => s.tipo !== 'SECRETARIA').length > 0 && (
                       <SelectGroup>
                         <SelectLabel className="text-xs font-semibold text-amber-600 uppercase tracking-wide">
@@ -580,7 +744,6 @@ export default function FormulariosPage() {
                      secretarias.filter(s => s.tipo === 'SECRETARIA').length > 0 && (
                       <SelectSeparator />
                     )}
-                    {/* Secretarias */}
                     {secretarias.filter(s => s.tipo === 'SECRETARIA').length > 0 && (
                       <SelectGroup>
                         <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -598,7 +761,6 @@ export default function FormulariosPage() {
               </div>
             )}
 
-            {/* diretorias — aparecem quando secretaria está definida */}
             {diretorias.length > 0 && (
               <div className="space-y-1.5">
                 <Label>Diretorias que vão responder</Label>

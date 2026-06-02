@@ -188,7 +188,7 @@ export type FormResponseGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type FormResponseGroupByOutputType = {
   id: string
   form_id: string
-  diretoria_id: string
+  diretoria_id: string | null
   user_id: string
   dados_json: runtime.JsonValue
   status: $Enums.ResponseStatus
@@ -224,7 +224,7 @@ export type FormResponseWhereInput = {
   NOT?: Prisma.FormResponseWhereInput | Prisma.FormResponseWhereInput[]
   id?: Prisma.StringFilter<"FormResponse"> | string
   form_id?: Prisma.StringFilter<"FormResponse"> | string
-  diretoria_id?: Prisma.StringFilter<"FormResponse"> | string
+  diretoria_id?: Prisma.StringNullableFilter<"FormResponse"> | string | null
   user_id?: Prisma.StringFilter<"FormResponse"> | string
   dados_json?: Prisma.JsonFilter<"FormResponse">
   status?: Prisma.EnumResponseStatusFilter<"FormResponse"> | $Enums.ResponseStatus
@@ -235,14 +235,14 @@ export type FormResponseWhereInput = {
   created_at?: Prisma.DateTimeFilter<"FormResponse"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"FormResponse"> | Date | string
   form?: Prisma.XOR<Prisma.FormSchemaScalarRelationFilter, Prisma.FormSchemaWhereInput>
-  diretoria?: Prisma.XOR<Prisma.DiretoriaScalarRelationFilter, Prisma.DiretoriaWhereInput>
+  diretoria?: Prisma.XOR<Prisma.DiretoriaNullableScalarRelationFilter, Prisma.DiretoriaWhereInput> | null
   usuario?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type FormResponseOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   form_id?: Prisma.SortOrder
-  diretoria_id?: Prisma.SortOrder
+  diretoria_id?: Prisma.SortOrderInput | Prisma.SortOrder
   user_id?: Prisma.SortOrder
   dados_json?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -263,7 +263,7 @@ export type FormResponseWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.FormResponseWhereInput[]
   NOT?: Prisma.FormResponseWhereInput | Prisma.FormResponseWhereInput[]
   form_id?: Prisma.StringFilter<"FormResponse"> | string
-  diretoria_id?: Prisma.StringFilter<"FormResponse"> | string
+  diretoria_id?: Prisma.StringNullableFilter<"FormResponse"> | string | null
   user_id?: Prisma.StringFilter<"FormResponse"> | string
   dados_json?: Prisma.JsonFilter<"FormResponse">
   status?: Prisma.EnumResponseStatusFilter<"FormResponse"> | $Enums.ResponseStatus
@@ -274,14 +274,14 @@ export type FormResponseWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"FormResponse"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"FormResponse"> | Date | string
   form?: Prisma.XOR<Prisma.FormSchemaScalarRelationFilter, Prisma.FormSchemaWhereInput>
-  diretoria?: Prisma.XOR<Prisma.DiretoriaScalarRelationFilter, Prisma.DiretoriaWhereInput>
+  diretoria?: Prisma.XOR<Prisma.DiretoriaNullableScalarRelationFilter, Prisma.DiretoriaWhereInput> | null
   usuario?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
 
 export type FormResponseOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   form_id?: Prisma.SortOrder
-  diretoria_id?: Prisma.SortOrder
+  diretoria_id?: Prisma.SortOrderInput | Prisma.SortOrder
   user_id?: Prisma.SortOrder
   dados_json?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -302,7 +302,7 @@ export type FormResponseScalarWhereWithAggregatesInput = {
   NOT?: Prisma.FormResponseScalarWhereWithAggregatesInput | Prisma.FormResponseScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"FormResponse"> | string
   form_id?: Prisma.StringWithAggregatesFilter<"FormResponse"> | string
-  diretoria_id?: Prisma.StringWithAggregatesFilter<"FormResponse"> | string
+  diretoria_id?: Prisma.StringNullableWithAggregatesFilter<"FormResponse"> | string | null
   user_id?: Prisma.StringWithAggregatesFilter<"FormResponse"> | string
   dados_json?: Prisma.JsonWithAggregatesFilter<"FormResponse">
   status?: Prisma.EnumResponseStatusWithAggregatesFilter<"FormResponse"> | $Enums.ResponseStatus
@@ -325,14 +325,14 @@ export type FormResponseCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   form: Prisma.FormSchemaCreateNestedOneWithoutRespostasInput
-  diretoria: Prisma.DiretoriaCreateNestedOneWithoutRespostasInput
+  diretoria?: Prisma.DiretoriaCreateNestedOneWithoutRespostasInput
   usuario: Prisma.UserCreateNestedOneWithoutRespostasInput
 }
 
 export type FormResponseUncheckedCreateInput = {
   id?: string
   form_id: string
-  diretoria_id: string
+  diretoria_id?: string | null
   user_id: string
   dados_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.ResponseStatus
@@ -355,14 +355,14 @@ export type FormResponseUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   form?: Prisma.FormSchemaUpdateOneRequiredWithoutRespostasNestedInput
-  diretoria?: Prisma.DiretoriaUpdateOneRequiredWithoutRespostasNestedInput
+  diretoria?: Prisma.DiretoriaUpdateOneWithoutRespostasNestedInput
   usuario?: Prisma.UserUpdateOneRequiredWithoutRespostasNestedInput
 }
 
 export type FormResponseUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   form_id?: Prisma.StringFieldUpdateOperationsInput | string
-  diretoria_id?: Prisma.StringFieldUpdateOperationsInput | string
+  diretoria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   dados_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumResponseStatusFieldUpdateOperationsInput | $Enums.ResponseStatus
@@ -377,7 +377,7 @@ export type FormResponseUncheckedUpdateInput = {
 export type FormResponseCreateManyInput = {
   id?: string
   form_id: string
-  diretoria_id: string
+  diretoria_id?: string | null
   user_id: string
   dados_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.ResponseStatus
@@ -404,7 +404,7 @@ export type FormResponseUpdateManyMutationInput = {
 export type FormResponseUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   form_id?: Prisma.StringFieldUpdateOperationsInput | string
-  diretoria_id?: Prisma.StringFieldUpdateOperationsInput | string
+  diretoria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   dados_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumResponseStatusFieldUpdateOperationsInput | $Enums.ResponseStatus
@@ -659,7 +659,7 @@ export type FormResponseScalarWhereInput = {
   NOT?: Prisma.FormResponseScalarWhereInput | Prisma.FormResponseScalarWhereInput[]
   id?: Prisma.StringFilter<"FormResponse"> | string
   form_id?: Prisma.StringFilter<"FormResponse"> | string
-  diretoria_id?: Prisma.StringFilter<"FormResponse"> | string
+  diretoria_id?: Prisma.StringNullableFilter<"FormResponse"> | string | null
   user_id?: Prisma.StringFilter<"FormResponse"> | string
   dados_json?: Prisma.JsonFilter<"FormResponse">
   status?: Prisma.EnumResponseStatusFilter<"FormResponse"> | $Enums.ResponseStatus
@@ -682,13 +682,13 @@ export type FormResponseCreateWithoutUsuarioInput = {
   created_at?: Date | string
   updated_at?: Date | string
   form: Prisma.FormSchemaCreateNestedOneWithoutRespostasInput
-  diretoria: Prisma.DiretoriaCreateNestedOneWithoutRespostasInput
+  diretoria?: Prisma.DiretoriaCreateNestedOneWithoutRespostasInput
 }
 
 export type FormResponseUncheckedCreateWithoutUsuarioInput = {
   id?: string
   form_id: string
-  diretoria_id: string
+  diretoria_id?: string | null
   dados_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.ResponseStatus
   enviado_em?: Date | string | null
@@ -735,13 +735,13 @@ export type FormResponseCreateWithoutFormInput = {
   observacoes?: string | null
   created_at?: Date | string
   updated_at?: Date | string
-  diretoria: Prisma.DiretoriaCreateNestedOneWithoutRespostasInput
+  diretoria?: Prisma.DiretoriaCreateNestedOneWithoutRespostasInput
   usuario: Prisma.UserCreateNestedOneWithoutRespostasInput
 }
 
 export type FormResponseUncheckedCreateWithoutFormInput = {
   id?: string
-  diretoria_id: string
+  diretoria_id?: string | null
   user_id: string
   dados_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.ResponseStatus
@@ -838,7 +838,7 @@ export type FormResponseUncheckedUpdateManyWithoutDiretoriaInput = {
 export type FormResponseCreateManyUsuarioInput = {
   id?: string
   form_id: string
-  diretoria_id: string
+  diretoria_id?: string | null
   dados_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.ResponseStatus
   enviado_em?: Date | string | null
@@ -860,13 +860,13 @@ export type FormResponseUpdateWithoutUsuarioInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   form?: Prisma.FormSchemaUpdateOneRequiredWithoutRespostasNestedInput
-  diretoria?: Prisma.DiretoriaUpdateOneRequiredWithoutRespostasNestedInput
+  diretoria?: Prisma.DiretoriaUpdateOneWithoutRespostasNestedInput
 }
 
 export type FormResponseUncheckedUpdateWithoutUsuarioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   form_id?: Prisma.StringFieldUpdateOperationsInput | string
-  diretoria_id?: Prisma.StringFieldUpdateOperationsInput | string
+  diretoria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dados_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumResponseStatusFieldUpdateOperationsInput | $Enums.ResponseStatus
   enviado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -880,7 +880,7 @@ export type FormResponseUncheckedUpdateWithoutUsuarioInput = {
 export type FormResponseUncheckedUpdateManyWithoutUsuarioInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   form_id?: Prisma.StringFieldUpdateOperationsInput | string
-  diretoria_id?: Prisma.StringFieldUpdateOperationsInput | string
+  diretoria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dados_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumResponseStatusFieldUpdateOperationsInput | $Enums.ResponseStatus
   enviado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -893,7 +893,7 @@ export type FormResponseUncheckedUpdateManyWithoutUsuarioInput = {
 
 export type FormResponseCreateManyFormInput = {
   id?: string
-  diretoria_id: string
+  diretoria_id?: string | null
   user_id: string
   dados_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.ResponseStatus
@@ -915,13 +915,13 @@ export type FormResponseUpdateWithoutFormInput = {
   observacoes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  diretoria?: Prisma.DiretoriaUpdateOneRequiredWithoutRespostasNestedInput
+  diretoria?: Prisma.DiretoriaUpdateOneWithoutRespostasNestedInput
   usuario?: Prisma.UserUpdateOneRequiredWithoutRespostasNestedInput
 }
 
 export type FormResponseUncheckedUpdateWithoutFormInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  diretoria_id?: Prisma.StringFieldUpdateOperationsInput | string
+  diretoria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   dados_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumResponseStatusFieldUpdateOperationsInput | $Enums.ResponseStatus
@@ -935,7 +935,7 @@ export type FormResponseUncheckedUpdateWithoutFormInput = {
 
 export type FormResponseUncheckedUpdateManyWithoutFormInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  diretoria_id?: Prisma.StringFieldUpdateOperationsInput | string
+  diretoria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   user_id?: Prisma.StringFieldUpdateOperationsInput | string
   dados_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumResponseStatusFieldUpdateOperationsInput | $Enums.ResponseStatus
@@ -963,7 +963,7 @@ export type FormResponseSelect<ExtArgs extends runtime.Types.Extensions.Internal
   created_at?: boolean
   updated_at?: boolean
   form?: boolean | Prisma.FormSchemaDefaultArgs<ExtArgs>
-  diretoria?: boolean | Prisma.DiretoriaDefaultArgs<ExtArgs>
+  diretoria?: boolean | Prisma.FormResponse$diretoriaArgs<ExtArgs>
   usuario?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["formResponse"]>
 
@@ -981,7 +981,7 @@ export type FormResponseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   created_at?: boolean
   updated_at?: boolean
   form?: boolean | Prisma.FormSchemaDefaultArgs<ExtArgs>
-  diretoria?: boolean | Prisma.DiretoriaDefaultArgs<ExtArgs>
+  diretoria?: boolean | Prisma.FormResponse$diretoriaArgs<ExtArgs>
   usuario?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["formResponse"]>
 
@@ -999,7 +999,7 @@ export type FormResponseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   created_at?: boolean
   updated_at?: boolean
   form?: boolean | Prisma.FormSchemaDefaultArgs<ExtArgs>
-  diretoria?: boolean | Prisma.DiretoriaDefaultArgs<ExtArgs>
+  diretoria?: boolean | Prisma.FormResponse$diretoriaArgs<ExtArgs>
   usuario?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["formResponse"]>
 
@@ -1021,17 +1021,17 @@ export type FormResponseSelectScalar = {
 export type FormResponseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "form_id" | "diretoria_id" | "user_id" | "dados_json" | "status" | "enviado_em" | "revisado_em" | "revisado_por" | "observacoes" | "created_at" | "updated_at", ExtArgs["result"]["formResponse"]>
 export type FormResponseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   form?: boolean | Prisma.FormSchemaDefaultArgs<ExtArgs>
-  diretoria?: boolean | Prisma.DiretoriaDefaultArgs<ExtArgs>
+  diretoria?: boolean | Prisma.FormResponse$diretoriaArgs<ExtArgs>
   usuario?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type FormResponseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   form?: boolean | Prisma.FormSchemaDefaultArgs<ExtArgs>
-  diretoria?: boolean | Prisma.DiretoriaDefaultArgs<ExtArgs>
+  diretoria?: boolean | Prisma.FormResponse$diretoriaArgs<ExtArgs>
   usuario?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type FormResponseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   form?: boolean | Prisma.FormSchemaDefaultArgs<ExtArgs>
-  diretoria?: boolean | Prisma.DiretoriaDefaultArgs<ExtArgs>
+  diretoria?: boolean | Prisma.FormResponse$diretoriaArgs<ExtArgs>
   usuario?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
@@ -1039,13 +1039,13 @@ export type $FormResponsePayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "FormResponse"
   objects: {
     form: Prisma.$FormSchemaPayload<ExtArgs>
-    diretoria: Prisma.$DiretoriaPayload<ExtArgs>
+    diretoria: Prisma.$DiretoriaPayload<ExtArgs> | null
     usuario: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     form_id: string
-    diretoria_id: string
+    diretoria_id: string | null
     user_id: string
     dados_json: runtime.JsonValue
     status: $Enums.ResponseStatus
@@ -1450,7 +1450,7 @@ readonly fields: FormResponseFieldRefs;
 export interface Prisma__FormResponseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   form<T extends Prisma.FormSchemaDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FormSchemaDefaultArgs<ExtArgs>>): Prisma.Prisma__FormSchemaClient<runtime.Types.Result.GetResult<Prisma.$FormSchemaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  diretoria<T extends Prisma.DiretoriaDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DiretoriaDefaultArgs<ExtArgs>>): Prisma.Prisma__DiretoriaClient<runtime.Types.Result.GetResult<Prisma.$DiretoriaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  diretoria<T extends Prisma.FormResponse$diretoriaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FormResponse$diretoriaArgs<ExtArgs>>): Prisma.Prisma__DiretoriaClient<runtime.Types.Result.GetResult<Prisma.$DiretoriaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   usuario<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1891,6 +1891,25 @@ export type FormResponseDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many FormResponses to delete.
    */
   limit?: number
+}
+
+/**
+ * FormResponse.diretoria
+ */
+export type FormResponse$diretoriaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Diretoria
+   */
+  select?: Prisma.DiretoriaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Diretoria
+   */
+  omit?: Prisma.DiretoriaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DiretoriaInclude<ExtArgs> | null
+  where?: Prisma.DiretoriaWhereInput
 }
 
 /**

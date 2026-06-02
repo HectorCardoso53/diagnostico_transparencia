@@ -28,10 +28,12 @@ export type AggregateFormSchema = {
 
 export type FormSchemaAvgAggregateOutputType = {
   versao: number | null
+  posicao: number | null
 }
 
 export type FormSchemaSumAggregateOutputType = {
   versao: number | null
+  posicao: number | null
 }
 
 export type FormSchemaMinAggregateOutputType = {
@@ -42,6 +44,7 @@ export type FormSchemaMinAggregateOutputType = {
   descricao: string | null
   versao: number | null
   status: $Enums.FormStatus | null
+  posicao: number | null
   publicado_em: Date | null
   arquivado_em: Date | null
   prazo_inicio: Date | null
@@ -58,6 +61,7 @@ export type FormSchemaMaxAggregateOutputType = {
   descricao: string | null
   versao: number | null
   status: $Enums.FormStatus | null
+  posicao: number | null
   publicado_em: Date | null
   arquivado_em: Date | null
   prazo_inicio: Date | null
@@ -75,6 +79,7 @@ export type FormSchemaCountAggregateOutputType = {
   schema_json: number
   versao: number
   status: number
+  posicao: number
   publicado_em: number
   arquivado_em: number
   prazo_inicio: number
@@ -87,10 +92,12 @@ export type FormSchemaCountAggregateOutputType = {
 
 export type FormSchemaAvgAggregateInputType = {
   versao?: true
+  posicao?: true
 }
 
 export type FormSchemaSumAggregateInputType = {
   versao?: true
+  posicao?: true
 }
 
 export type FormSchemaMinAggregateInputType = {
@@ -101,6 +108,7 @@ export type FormSchemaMinAggregateInputType = {
   descricao?: true
   versao?: true
   status?: true
+  posicao?: true
   publicado_em?: true
   arquivado_em?: true
   prazo_inicio?: true
@@ -117,6 +125,7 @@ export type FormSchemaMaxAggregateInputType = {
   descricao?: true
   versao?: true
   status?: true
+  posicao?: true
   publicado_em?: true
   arquivado_em?: true
   prazo_inicio?: true
@@ -134,6 +143,7 @@ export type FormSchemaCountAggregateInputType = {
   schema_json?: true
   versao?: true
   status?: true
+  posicao?: true
   publicado_em?: true
   arquivado_em?: true
   prazo_inicio?: true
@@ -238,6 +248,7 @@ export type FormSchemaGroupByOutputType = {
   schema_json: runtime.JsonValue
   versao: number
   status: $Enums.FormStatus
+  posicao: number
   publicado_em: Date | null
   arquivado_em: Date | null
   prazo_inicio: Date | null
@@ -278,6 +289,7 @@ export type FormSchemaWhereInput = {
   schema_json?: Prisma.JsonFilter<"FormSchema">
   versao?: Prisma.IntFilter<"FormSchema"> | number
   status?: Prisma.EnumFormStatusFilter<"FormSchema"> | $Enums.FormStatus
+  posicao?: Prisma.IntFilter<"FormSchema"> | number
   publicado_em?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
   arquivado_em?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
   prazo_inicio?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
@@ -300,6 +312,7 @@ export type FormSchemaOrderByWithRelationInput = {
   schema_json?: Prisma.SortOrder
   versao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  posicao?: Prisma.SortOrder
   publicado_em?: Prisma.SortOrderInput | Prisma.SortOrder
   arquivado_em?: Prisma.SortOrderInput | Prisma.SortOrder
   prazo_inicio?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -325,6 +338,7 @@ export type FormSchemaWhereUniqueInput = Prisma.AtLeast<{
   schema_json?: Prisma.JsonFilter<"FormSchema">
   versao?: Prisma.IntFilter<"FormSchema"> | number
   status?: Prisma.EnumFormStatusFilter<"FormSchema"> | $Enums.FormStatus
+  posicao?: Prisma.IntFilter<"FormSchema"> | number
   publicado_em?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
   arquivado_em?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
   prazo_inicio?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
@@ -347,6 +361,7 @@ export type FormSchemaOrderByWithAggregationInput = {
   schema_json?: Prisma.SortOrder
   versao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  posicao?: Prisma.SortOrder
   publicado_em?: Prisma.SortOrderInput | Prisma.SortOrder
   arquivado_em?: Prisma.SortOrderInput | Prisma.SortOrder
   prazo_inicio?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -372,6 +387,7 @@ export type FormSchemaScalarWhereWithAggregatesInput = {
   schema_json?: Prisma.JsonWithAggregatesFilter<"FormSchema">
   versao?: Prisma.IntWithAggregatesFilter<"FormSchema"> | number
   status?: Prisma.EnumFormStatusWithAggregatesFilter<"FormSchema"> | $Enums.FormStatus
+  posicao?: Prisma.IntWithAggregatesFilter<"FormSchema"> | number
   publicado_em?: Prisma.DateTimeNullableWithAggregatesFilter<"FormSchema"> | Date | string | null
   arquivado_em?: Prisma.DateTimeNullableWithAggregatesFilter<"FormSchema"> | Date | string | null
   prazo_inicio?: Prisma.DateTimeNullableWithAggregatesFilter<"FormSchema"> | Date | string | null
@@ -387,6 +403,7 @@ export type FormSchemaCreateInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -409,6 +426,7 @@ export type FormSchemaUncheckedCreateInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -427,6 +445,7 @@ export type FormSchemaUpdateInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -449,6 +468,7 @@ export type FormSchemaUncheckedUpdateInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -469,6 +489,7 @@ export type FormSchemaCreateManyInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -484,6 +505,7 @@ export type FormSchemaUpdateManyMutationInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -501,6 +523,7 @@ export type FormSchemaUncheckedUpdateManyInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -528,6 +551,7 @@ export type FormSchemaCountOrderByAggregateInput = {
   schema_json?: Prisma.SortOrder
   versao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  posicao?: Prisma.SortOrder
   publicado_em?: Prisma.SortOrder
   arquivado_em?: Prisma.SortOrder
   prazo_inicio?: Prisma.SortOrder
@@ -538,6 +562,7 @@ export type FormSchemaCountOrderByAggregateInput = {
 
 export type FormSchemaAvgOrderByAggregateInput = {
   versao?: Prisma.SortOrder
+  posicao?: Prisma.SortOrder
 }
 
 export type FormSchemaMaxOrderByAggregateInput = {
@@ -548,6 +573,7 @@ export type FormSchemaMaxOrderByAggregateInput = {
   descricao?: Prisma.SortOrder
   versao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  posicao?: Prisma.SortOrder
   publicado_em?: Prisma.SortOrder
   arquivado_em?: Prisma.SortOrder
   prazo_inicio?: Prisma.SortOrder
@@ -564,6 +590,7 @@ export type FormSchemaMinOrderByAggregateInput = {
   descricao?: Prisma.SortOrder
   versao?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  posicao?: Prisma.SortOrder
   publicado_em?: Prisma.SortOrder
   arquivado_em?: Prisma.SortOrder
   prazo_inicio?: Prisma.SortOrder
@@ -574,6 +601,7 @@ export type FormSchemaMinOrderByAggregateInput = {
 
 export type FormSchemaSumOrderByAggregateInput = {
   versao?: Prisma.SortOrder
+  posicao?: Prisma.SortOrder
 }
 
 export type FormSchemaScalarRelationFilter = {
@@ -726,6 +754,7 @@ export type FormSchemaCreateWithoutSecretariaInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -746,6 +775,7 @@ export type FormSchemaUncheckedCreateWithoutSecretariaInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -795,6 +825,7 @@ export type FormSchemaScalarWhereInput = {
   schema_json?: Prisma.JsonFilter<"FormSchema">
   versao?: Prisma.IntFilter<"FormSchema"> | number
   status?: Prisma.EnumFormStatusFilter<"FormSchema"> | $Enums.FormStatus
+  posicao?: Prisma.IntFilter<"FormSchema"> | number
   publicado_em?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
   arquivado_em?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
   prazo_inicio?: Prisma.DateTimeNullableFilter<"FormSchema"> | Date | string | null
@@ -810,6 +841,7 @@ export type FormSchemaCreateWithoutCriado_porInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -830,6 +862,7 @@ export type FormSchemaUncheckedCreateWithoutCriado_porInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -874,6 +907,7 @@ export type FormSchemaCreateWithoutVersoesInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -895,6 +929,7 @@ export type FormSchemaUncheckedCreateWithoutVersoesInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -928,6 +963,7 @@ export type FormSchemaUpdateWithoutVersoesInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -949,6 +985,7 @@ export type FormSchemaUncheckedUpdateWithoutVersoesInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -966,6 +1003,7 @@ export type FormSchemaCreateWithoutAtribuicoesInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -987,6 +1025,7 @@ export type FormSchemaUncheckedCreateWithoutAtribuicoesInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -1020,6 +1059,7 @@ export type FormSchemaUpdateWithoutAtribuicoesInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1041,6 +1081,7 @@ export type FormSchemaUncheckedUpdateWithoutAtribuicoesInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1058,6 +1099,7 @@ export type FormSchemaCreateWithoutRespostasInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -1079,6 +1121,7 @@ export type FormSchemaUncheckedCreateWithoutRespostasInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -1112,6 +1155,7 @@ export type FormSchemaUpdateWithoutRespostasInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1133,6 +1177,7 @@ export type FormSchemaUncheckedUpdateWithoutRespostasInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1151,6 +1196,7 @@ export type FormSchemaCreateManySecretariaInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -1166,6 +1212,7 @@ export type FormSchemaUpdateWithoutSecretariaInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1186,6 +1233,7 @@ export type FormSchemaUncheckedUpdateWithoutSecretariaInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1205,6 +1253,7 @@ export type FormSchemaUncheckedUpdateManyWithoutSecretariaInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1221,6 +1270,7 @@ export type FormSchemaCreateManyCriado_porInput = {
   schema_json: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: number
   status?: $Enums.FormStatus
+  posicao?: number
   publicado_em?: Date | string | null
   arquivado_em?: Date | string | null
   prazo_inicio?: Date | string | null
@@ -1236,6 +1286,7 @@ export type FormSchemaUpdateWithoutCriado_porInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1256,6 +1307,7 @@ export type FormSchemaUncheckedUpdateWithoutCriado_porInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1275,6 +1327,7 @@ export type FormSchemaUncheckedUpdateManyWithoutCriado_porInput = {
   schema_json?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   versao?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumFormStatusFieldUpdateOperationsInput | $Enums.FormStatus
+  posicao?: Prisma.IntFieldUpdateOperationsInput | number
   publicado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   arquivado_em?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   prazo_inicio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1341,6 +1394,7 @@ export type FormSchemaSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   schema_json?: boolean
   versao?: boolean
   status?: boolean
+  posicao?: boolean
   publicado_em?: boolean
   arquivado_em?: boolean
   prazo_inicio?: boolean
@@ -1364,6 +1418,7 @@ export type FormSchemaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   schema_json?: boolean
   versao?: boolean
   status?: boolean
+  posicao?: boolean
   publicado_em?: boolean
   arquivado_em?: boolean
   prazo_inicio?: boolean
@@ -1383,6 +1438,7 @@ export type FormSchemaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   schema_json?: boolean
   versao?: boolean
   status?: boolean
+  posicao?: boolean
   publicado_em?: boolean
   arquivado_em?: boolean
   prazo_inicio?: boolean
@@ -1402,6 +1458,7 @@ export type FormSchemaSelectScalar = {
   schema_json?: boolean
   versao?: boolean
   status?: boolean
+  posicao?: boolean
   publicado_em?: boolean
   arquivado_em?: boolean
   prazo_inicio?: boolean
@@ -1410,7 +1467,7 @@ export type FormSchemaSelectScalar = {
   updated_at?: boolean
 }
 
-export type FormSchemaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "secretaria_id" | "criado_por_id" | "titulo" | "descricao" | "schema_json" | "versao" | "status" | "publicado_em" | "arquivado_em" | "prazo_inicio" | "prazo_fim" | "created_at" | "updated_at", ExtArgs["result"]["formSchema"]>
+export type FormSchemaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "secretaria_id" | "criado_por_id" | "titulo" | "descricao" | "schema_json" | "versao" | "status" | "posicao" | "publicado_em" | "arquivado_em" | "prazo_inicio" | "prazo_fim" | "created_at" | "updated_at", ExtArgs["result"]["formSchema"]>
 export type FormSchemaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   secretaria?: boolean | Prisma.SecretariaDefaultArgs<ExtArgs>
   criado_por?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1446,6 +1503,7 @@ export type $FormSchemaPayload<ExtArgs extends runtime.Types.Extensions.Internal
     schema_json: runtime.JsonValue
     versao: number
     status: $Enums.FormStatus
+    posicao: number
     publicado_em: Date | null
     arquivado_em: Date | null
     prazo_inicio: Date | null
@@ -1888,6 +1946,7 @@ export interface FormSchemaFieldRefs {
   readonly schema_json: Prisma.FieldRef<"FormSchema", 'Json'>
   readonly versao: Prisma.FieldRef<"FormSchema", 'Int'>
   readonly status: Prisma.FieldRef<"FormSchema", 'FormStatus'>
+  readonly posicao: Prisma.FieldRef<"FormSchema", 'Int'>
   readonly publicado_em: Prisma.FieldRef<"FormSchema", 'DateTime'>
   readonly arquivado_em: Prisma.FieldRef<"FormSchema", 'DateTime'>
   readonly prazo_inicio: Prisma.FieldRef<"FormSchema", 'DateTime'>

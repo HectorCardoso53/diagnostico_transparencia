@@ -68,8 +68,23 @@ export class FormulariosService {
         },
         _count: { select: { atribuicoes: true, respostas: true } },
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: [{ posicao: 'asc' }, { created_at: 'desc' }],
     });
+  }
+
+  async reordenar(
+    items: { id: string; posicao: number }[],
+    user: CurrentUser,
+  ) {
+    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN];
+    if (!adminRoles.includes(user.role))
+      throw new ForbiddenException('Sem permissão para reordenar formulários');
+
+    await Promise.all(
+      items.map(({ id, posicao }) =>
+        this.prisma.formSchema.update({ where: { id }, data: { posicao } }),
+      ),
+    );
   }
 
   async findOne(id: string) {

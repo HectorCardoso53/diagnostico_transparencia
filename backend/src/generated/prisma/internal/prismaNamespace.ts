@@ -1191,6 +1191,7 @@ export const FormSchemaScalarFieldEnum = {
   schema_json: 'schema_json',
   versao: 'versao',
   status: 'status',
+  posicao: 'posicao',
   publicado_em: 'publicado_em',
   arquivado_em: 'arquivado_em',
   prazo_inicio: 'prazo_inicio',

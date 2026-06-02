@@ -196,6 +196,7 @@ model FormSchema {
   schema_json   Json       // definição dinâmica dos campos
   versao        Int        @default(1)
   status        FormStatus @default(RASCUNHO)
+  posicao       Int        @default(0)
   publicado_em  DateTime?
   arquivado_em  DateTime?
   prazo_inicio  DateTime?
@@ -265,7 +266,7 @@ model FormAtribuicao {
 model FormResponse {
   id           String         @id @default(uuid())
   form_id      String
-  diretoria_id String
+  diretoria_id String?
   user_id      String
   dados_json   Json           // respostas preenchidas
   status       ResponseStatus @default(RASCUNHO)
@@ -276,9 +277,9 @@ model FormResponse {
   created_at   DateTime       @default(now())
   updated_at   DateTime       @updatedAt
 
-  form      FormSchema @relation(fields: [form_id], references: [id])
-  diretoria Diretoria  @relation(fields: [diretoria_id], references: [id])
-  usuario   User       @relation(fields: [user_id], references: [id])
+  form      FormSchema  @relation(fields: [form_id], references: [id])
+  diretoria Diretoria?  @relation(fields: [diretoria_id], references: [id])
+  usuario   User        @relation(fields: [user_id], references: [id])
 
   @@map("form_responses")
 }
