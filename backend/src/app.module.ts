@@ -10,8 +10,6 @@ import { DiretoriasModule } from './diretorias/diretorias.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { FormulariosModule } from './formularios/formularios.module';
 import { RespostasModule } from './respostas/respostas.module';
-import { UploadsController } from './uploads.controller';
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
@@ -24,7 +22,6 @@ import { UploadsController } from './uploads.controller';
     FormulariosModule,
     RespostasModule,
   ],
-  controllers: [UploadsController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
