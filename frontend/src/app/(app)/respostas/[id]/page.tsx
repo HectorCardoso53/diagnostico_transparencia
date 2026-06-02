@@ -388,9 +388,9 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
                   {/* Anexo de arquivo */}
                   {campo.permite_anexo && (
                     <div className="space-y-2 pt-1">
-                      {answers[key] && (
+                      {Boolean(answers[key]) && (
                         <a
-                          href={`${BASE_URL}${answers[key]}`}
+                          href={`${BASE_URL}${answers[key] as string}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
