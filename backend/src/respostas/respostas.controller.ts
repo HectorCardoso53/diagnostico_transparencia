@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,8 +10,13 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { join } from 'path';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -75,6 +81,29 @@ export class RespostasController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.revisar(id, dto, user);
+  }
+
+  @Post(':id/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: join(process.cwd(), 'uploads'),
+        filename: (_req, file, cb) => {
+          const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+          const ext = file.originalname.split('.').pop() ?? 'bin';
+          cb(null, `${unique}.${ext}`);
+        },
+      }),
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
+  uploadAnexo(
+    @Param('id') _id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() _user: AuthUser,
+  ) {
+    if (!file) throw new BadRequestException('Arquivo obrigatório');
+    return { url: `/uploads/${file.filename}` };
   }
 
   @Delete(':id')

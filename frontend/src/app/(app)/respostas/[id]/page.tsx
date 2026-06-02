@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
-import { ArrowLeft, Send } from 'lucide-react'
+import { ArrowLeft, Paperclip, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -32,7 +32,10 @@ interface Campo {
   label: string
   obrigatorio?: boolean
   opcoes?: string[]
+  permite_anexo?: boolean
 }
+
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api').replace(/\/api$/, '')
 
 interface Resposta {
   id: string
@@ -83,6 +86,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
   const canReview = (user?.role === 'SECRETARIO' && !isSecretarioPreenchendo) || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState<Record<string, boolean>>({})
   const [reviewStatus, setReviewStatus] = useState('APROVADO')
   const [observacoes, setObservacoes] = useState('')
   const [reviewing, setReviewing] = useState(false)
@@ -159,6 +163,21 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
   function toggleCheckbox(key: string, opcao: string, checked: boolean) {
     const current = Array.isArray(answers[key]) ? (answers[key] as string[]) : []
     setAnswer(key, checked ? [...current, opcao] : current.filter((v) => v !== opcao))
+  }
+
+  async function handleUpload(campoKey: string, file?: File) {
+    if (!file || !resposta) return
+    setUploading((prev) => ({ ...prev, [campoKey]: true }))
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const result = await api.upload<{ url: string }>(`/respostas/${resposta.id}/upload`, fd)
+      setAnswer(campoKey, result.url)
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao enviar arquivo')
+    } finally {
+      setUploading((prev) => ({ ...prev, [campoKey]: false }))
+    }
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -364,6 +383,38 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
                         <SelectItem value="false">Não</SelectItem>
                       </SelectContent>
                     </Select>
+                  )}
+
+                  {/* Anexo de arquivo */}
+                  {campo.permite_anexo && (
+                    <div className="space-y-2 pt-1">
+                      {answers[key] && (
+                        <a
+                          href={`${BASE_URL}${answers[key]}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                        >
+                          <Paperclip className="h-4 w-4 shrink-0" />
+                          Arquivo anexado — clique para visualizar
+                        </a>
+                      )}
+                      {!disabled && (
+                        <label className="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 max-w-sm bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
+                          <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm text-muted-foreground">
+                            {uploading[key] ? 'Enviando...' : answers[key] ? 'Substituir arquivo' : 'Anexar arquivo (PDF, JPG, PNG)'}
+                          </span>
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            className="sr-only"
+                            disabled={uploading[key]}
+                            onChange={(e) => handleUpload(key, e.target.files?.[0])}
+                          />
+                        </label>
+                      )}
+                    </div>
                   )}
                 </div>
               )

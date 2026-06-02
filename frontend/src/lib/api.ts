@@ -56,6 +56,31 @@ async function request<T>(
   return body as T
 }
 
+async function uploadRequest<T>(path: string, formData: FormData, retry = true): Promise<T> {
+  const headers: HeadersInit = {
+    ...(memoryToken ? { Authorization: `Bearer ${memoryToken}` } : {}),
+  }
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    body: formData,
+    headers,
+    credentials: 'include',
+  })
+  if (res.status === 401 && retry) {
+    const refreshed = await tryRefresh()
+    if (refreshed) return uploadRequest<T>(path, formData, false)
+    memoryToken = null
+    localStorage.removeItem('user')
+    document.cookie = 'is_auth=; Max-Age=0; path=/'
+    window.location.href = '/login'
+    throw new Error('Sessão expirada')
+  }
+  if (res.status === 204) return null as T
+  const body = await res.json()
+  if (!res.ok) throw new Error(body?.message ?? `Erro ${res.status}`)
+  return body as T
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, data: unknown) =>
@@ -63,4 +88,5 @@ export const api = {
   patch: <T>(path: string, data: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: <T>(path: string, formData: FormData) => uploadRequest<T>(path, formData),
 }
