@@ -447,7 +447,7 @@ export default function FormulariosPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
-                {['Título', 'Órgão', 'Status', 'Versão', 'Criador', 'Publicado em', ''].map((h) => (
+                {['Título', 'Órgão', 'Diretorias', 'Status', 'Versão', 'Criador', 'Publicado em', ''].map((h) => (
                   <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -467,6 +467,24 @@ export default function FormulariosPage() {
                         )}
                       </div>
                     ) : '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    {f.atribuicoes.length === 0 ? (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    ) : (
+                      <div className="flex flex-wrap gap-1 max-w-[220px]">
+                        {f.atribuicoes.slice(0, 3).map(({ diretoria }) => (
+                          <span key={diretoria.id} className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground leading-tight">
+                            {diretoria.nome}
+                          </span>
+                        ))}
+                        {f.atribuicoes.length > 3 && (
+                          <span className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground leading-tight">
+                            +{f.atribuicoes.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={STATUS_VARIANT[f.status] ?? 'secondary'}>{STATUS_LABEL[f.status] ?? f.status}</Badge>
@@ -505,7 +523,7 @@ export default function FormulariosPage() {
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">Nenhum formulário encontrado</td></tr>
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">Nenhum formulário encontrado</td></tr>
               )}
             </tbody>
           </table>
