@@ -75,10 +75,12 @@ const REVIEW_OPTIONS = [
 export default function RespostaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { user } = useAuth()
-  const canFill   = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
-  const canReview = user?.role === 'SECRETARIO' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
   const [id, setId] = useState('')
   const [resposta, setResposta] = useState<Resposta | null>(null)
+  // secretário preenche quando a resposta é dele próprio (sem diretoria)
+  const isSecretarioPreenchendo = user?.role === 'SECRETARIO' && resposta?.diretoria === null
+  const canFill   = user?.role === 'DIRETOR' || user?.role === 'OPERADOR' || isSecretarioPreenchendo
+  const canReview = (user?.role === 'SECRETARIO' && !isSecretarioPreenchendo) || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [saving, setSaving] = useState(false)
   const [reviewStatus, setReviewStatus] = useState('APROVADO')
@@ -172,7 +174,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/respostas')}>
+        <Button variant="ghost" size="icon" onClick={() => router.push(isSecretarioPreenchendo ? '/formularios' : '/respostas')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
