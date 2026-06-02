@@ -10,6 +10,7 @@ import { DiretoriasModule } from './diretorias/diretorias.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { FormulariosModule } from './formularios/formularios.module';
 import { RespostasModule } from './respostas/respostas.module';
+import { UploadsController } from './uploads.controller';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RespostasModule } from './respostas/respostas.module';
     FormulariosModule,
     RespostasModule,
   ],
+  controllers: [UploadsController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

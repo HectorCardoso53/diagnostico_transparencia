@@ -35,7 +35,7 @@ interface Campo {
   permite_anexo?: boolean
 }
 
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api').replace(/\/api$/, '')
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'
 
 interface Resposta {
   id: string
@@ -390,7 +390,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
                     <div className="space-y-2 pt-1">
                       {Boolean(answers[key]) && (
                         <a
-                          href={`${BASE_URL}${answers[key] as string}`}
+                          href={`${API_BASE}${answers[key] as string}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
