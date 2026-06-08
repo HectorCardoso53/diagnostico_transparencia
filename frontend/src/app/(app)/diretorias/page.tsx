@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface Diretoria {
   id: string
   nome: string
-  sigla: string
+  sigla: string | null
   responsavel: string | null
   ativo: boolean
   created_at: string
@@ -62,7 +62,7 @@ export default function DiretoriasPage() {
 
   function openEdit(d: Diretoria) {
     setEditing(d)
-    setForm({ secretaria_id: '', nome: d.nome, sigla: d.sigla, responsavel: d.responsavel ?? '' })
+    setForm({ secretaria_id: '', nome: d.nome, sigla: d.sigla ?? '', responsavel: d.responsavel ?? '' })
     setOpen(true)
   }
 
@@ -122,7 +122,7 @@ export default function DiretoriasPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              {['Nome', 'Sigla', 'Secretaria', 'Responsável', 'Criado em', 'Ações'].map((h) => (
+              {['Nome', 'Secretaria', 'Responsável', 'Criado em', 'Ações'].map((h) => (
                 <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
               ))}
             </tr>
@@ -131,7 +131,6 @@ export default function DiretoriasPage() {
             {items.map((d) => (
               <tr key={d.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3 font-medium">{d.nome}</td>
-                <td className="px-4 py-3">{d.sigla}</td>
                 <td className="px-4 py-3 text-muted-foreground">{d.secretaria?.nome ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{d.responsavel ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(d.created_at)}</td>
@@ -149,7 +148,7 @@ export default function DiretoriasPage() {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
                   Nenhuma diretoria encontrada
                 </td>
               </tr>
@@ -190,7 +189,7 @@ export default function DiretoriasPage() {
                 <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
               </div>
               <div className="space-y-1.5">
-                <Label>Sigla *</Label>
+                <Label>Sigla</Label>
                 <Input value={form.sigla} onChange={(e) => setForm({ ...form, sigla: e.target.value })} />
               </div>
             </div>
@@ -203,7 +202,7 @@ export default function DiretoriasPage() {
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button
               onClick={save}
-              disabled={saving || !form.nome || !form.sigla || (!editing && !form.secretaria_id)}
+              disabled={saving || !form.nome || (!editing && !form.secretaria_id)}
             >
               {saving ? 'Salvando...' : 'Salvar'}
             </Button>

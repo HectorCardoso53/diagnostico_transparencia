@@ -107,7 +107,7 @@ model Diretoria {
   id            String   @id @default(uuid())
   secretaria_id String
   nome          String
-  sigla         String
+  sigla         String?
   descricao     String?
   responsavel   String?
   email         String?

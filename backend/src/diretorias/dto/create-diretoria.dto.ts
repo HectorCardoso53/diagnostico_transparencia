@@ -8,7 +8,8 @@ export class CreateDiretoriaDto {
   nome: string;
 
   @IsString()
-  sigla: string;
+  @IsOptional()
+  sigla?: string;
 
   @IsString()
   @IsOptional()
