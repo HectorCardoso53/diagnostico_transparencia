@@ -76,8 +76,6 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules          # evita sobrescrever node_modules do container
-    ports:
-      - "3002:3001"
     command: >
       sh -c "npx prisma migrate deploy && npm run start:dev"
     networks:
