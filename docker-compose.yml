@@ -53,7 +53,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: development             # troca para 'production' no deploy
+      target: production
     container_name: diag_backend
     restart: unless-stopped
     dns:
@@ -63,7 +63,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
+      NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-diagnostico}?schema=public
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
@@ -71,13 +71,8 @@ services:
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000,http://localhost:3004}
       PORT: 3001
-      CHOKIDAR_USEPOLLING: "true"
-      CHOKIDAR_INTERVAL: "1000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules          # evita sobrescrever node_modules do container
     command: >
-      sh -c "npx prisma migrate deploy && npm run start:dev"
+      sh -c "npx prisma migrate deploy && node dist/src/main"
     networks:
       - diag_network
 
