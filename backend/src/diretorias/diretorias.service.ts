@@ -55,7 +55,10 @@ export class DiretoriasService {
 
   async create(dto: CreateDiretoriaDto, user: CurrentUser) {
     this.assertSecretariaAccess(dto.secretaria_id, user);
-    return this.prisma.diretoria.create({ data: dto });
+    const { secretaria_id, nome, sigla, descricao, responsavel, email } = dto;
+    return this.prisma.diretoria.create({
+      data: { secretaria_id, nome, sigla, descricao, responsavel, email },
+    });
   }
 
   async update(id: string, dto: UpdateDiretoriaDto, user: CurrentUser) {

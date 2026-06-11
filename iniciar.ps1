@@ -116,12 +116,24 @@ if (Test-Path $envFile) {
 $env:DATABASE_URL = "postgresql://${pgUser}:${pgPass}@localhost:5432/${pgDb}?schema=public"
 
 Set-Location $Backend
-$migrateOut = npx prisma migrate deploy 2>&1
+$migrateOut = npm exec -- prisma migrate deploy 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Fail "Erro ao aplicar migrations:`n$migrateOut"
-    exit 1
+    Write-Host "   [AVISO] Migration via npm exec falhou, tentando via node..." -ForegroundColor Yellow
+    $prismaJs = Get-ChildItem -Path "node_modules\prisma" -Filter "*.js" -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -match "^(index|bin|cli)\.js$" } |
+                Select-Object -First 1 -ExpandProperty FullName
+    if ($prismaJs) {
+        $migrateOut = node $prismaJs migrate deploy 2>&1
+    }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "   [AVISO] Nao foi possivel aplicar migrations automaticamente." -ForegroundColor Yellow
+        Write-Host "           Execute manualmente: cd backend; npx prisma migrate deploy" -ForegroundColor Yellow
+    } else {
+        Write-OK "Migrations aplicadas."
+    }
+} else {
+    Write-OK "Migrations aplicadas."
 }
-Write-OK "Migrations aplicadas."
 
 # =============================================================
 #  4. Backend — NestJS (janela separada)
