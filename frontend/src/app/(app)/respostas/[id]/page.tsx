@@ -167,16 +167,17 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
 
   async function handleUpload(campoKey: string, file?: File) {
     if (!file || !resposta) return
-    setUploading((prev) => ({ ...prev, [campoKey]: true }))
+    const fileKey = `${campoKey}__file`
+    setUploading((prev) => ({ ...prev, [fileKey]: true }))
     try {
       const fd = new FormData()
       fd.append('file', file)
       const result = await api.upload<{ url: string }>(`/respostas/${resposta.id}/upload`, fd)
-      setAnswer(campoKey, result.url)
+      setAnswer(fileKey, result.url)
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao enviar arquivo')
     } finally {
-      setUploading((prev) => ({ ...prev, [campoKey]: false }))
+      setUploading((prev) => ({ ...prev, [fileKey]: false }))
     }
   }
 
@@ -386,36 +387,50 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
                   )}
 
                   {/* Anexo de arquivo */}
-                  {campo.permite_anexo && (
-                    <div className="space-y-2 pt-1">
-                      {Boolean(answers[key]) && (
-                        <a
-                          href={`${API_BASE}${answers[key] as string}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                        >
-                          <Paperclip className="h-4 w-4 shrink-0" />
-                          Arquivo anexado — clique para visualizar
-                        </a>
-                      )}
-                      {!disabled && (
-                        <label className="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 max-w-sm bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
-                          <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <span className="text-sm text-muted-foreground">
-                            {uploading[key] ? 'Enviando...' : answers[key] ? 'Substituir arquivo' : 'Anexar arquivo (PDF, JPG, PNG)'}
-                          </span>
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="hidden"
-                            disabled={uploading[key]}
-                            onChange={(e) => handleUpload(key, e.target.files?.[0])}
-                          />
-                        </label>
-                      )}
-                    </div>
-                  )}
+                  {campo.permite_anexo && (() => {
+                    const fileKey = `${key}__file`
+                    const val = answers[key]
+                    // Suporte ao formato antigo: URL guardada direto no key
+                    const legacyUrl = typeof val === 'string' && val.startsWith('/uploads/') ? val : null
+                    const fileUrl = (answers[fileKey] as string | undefined) ?? legacyUrl
+
+                    // Esconde o upload quando a resposta for explicitamente negativa
+                    const isNegativa = val === false || val === 'false' ||
+                      (typeof val === 'string' && /^n[ãa]o$/i.test(val.trim()))
+
+                    if (isNegativa && !fileUrl) return null
+
+                    return (
+                      <div className="space-y-2 pt-1">
+                        {fileUrl && (
+                          <a
+                            href={`${API_BASE}${fileUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                          >
+                            <Paperclip className="h-4 w-4 shrink-0" />
+                            Arquivo anexado — clique para visualizar
+                          </a>
+                        )}
+                        {!disabled && !isNegativa && (
+                          <label className="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 max-w-sm bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
+                            <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm text-muted-foreground">
+                              {uploading[fileKey] ? 'Enviando...' : fileUrl ? 'Substituir arquivo' : 'Anexar arquivo (PDF, JPG, PNG)'}
+                            </span>
+                            <input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="hidden"
+                              disabled={uploading[fileKey]}
+                              onChange={(e) => handleUpload(key, e.target.files?.[0])}
+                            />
+                          </label>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               )
             })
