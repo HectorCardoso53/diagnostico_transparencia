@@ -90,6 +90,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
   const [reviewStatus, setReviewStatus] = useState('APROVADO')
   const [observacoes, setObservacoes] = useState('')
   const [reviewing, setReviewing] = useState(false)
+  const [enviado, setEnviado] = useState(false)
 
   useEffect(() => { params.then((p) => setId(p.id)) }, [params])
 
@@ -143,8 +144,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
     try {
       await api.patch(`/respostas/${resposta.id}`, { dados_json: answers })
       await api.post(`/respostas/${resposta.id}/enviar`, {})
-      toast.success('Resposta enviada com sucesso!')
-      load()
+      setEnviado(true)
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro')
     } finally {
@@ -202,6 +202,27 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (!resposta) return <div className="p-6 text-muted-foreground">Carregando...</div>
+
+  if (enviado) return (
+    <div className="min-h-[60vh] flex items-center justify-center p-6">
+      <div className="max-w-lg w-full rounded-2xl border bg-card shadow-sm p-10 text-center space-y-4">
+        <div className="flex justify-center">
+          <div className="rounded-full bg-green-100 p-4">
+            <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold">Respostas registradas com sucesso!</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Obrigado por dedicar seu tempo ao preenchimento deste formulário. As informações fornecidas serão utilizadas para subsidiar o diagnóstico e o monitoramento da gestão municipal.
+        </p>
+        <Button className="mt-2" onClick={() => router.push(isSecretarioPreenchendo ? '/formularios' : '/respostas')}>
+          Voltar
+        </Button>
+      </div>
+    </div>
+  )
 
   const campos: Campo[] = resposta.formulario?.schema_json?.campos ?? []
   const isRascunho = resposta.status === 'RASCUNHO'
