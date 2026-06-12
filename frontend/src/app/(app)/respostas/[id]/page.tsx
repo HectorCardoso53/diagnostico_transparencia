@@ -121,6 +121,24 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
 
   async function enviar() {
     if (!resposta) return
+
+    const camposObrigatoriosVazios = campos
+      .filter((c) => c.obrigatorio)
+      .filter((c) => {
+        const key = campoKey(c)
+        const val = answers[key]
+        if (val === undefined || val === null) return true
+        if (typeof val === 'string') return val.trim() === ''
+        if (Array.isArray(val)) return val.length === 0
+        return false
+      })
+
+    if (camposObrigatoriosVazios.length > 0) {
+      const nomes = camposObrigatoriosVazios.map((c) => `• ${c.label}`).join('\n')
+      toast.error(`Preencha os campos obrigatórios antes de enviar:\n${nomes}`)
+      return
+    }
+
     setSaving(true)
     try {
       await api.patch(`/respostas/${resposta.id}`, { dados_json: answers })
