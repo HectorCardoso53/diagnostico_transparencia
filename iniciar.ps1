@@ -61,7 +61,49 @@ if (-not $dockerRunning) {
 Write-OK "Docker Desktop esta rodando."
 
 # =============================================================
-#  2. Container PostgreSQL
+#  2. Liberar portas 3001 e 3004
+# =============================================================
+Write-Step "Liberando portas 3001 e 3004..."
+
+# Para qualquer container Docker que esteja usando as portas 3001 ou 3004
+$portasAlvo = @('3001', '3004')
+$containersRodando = docker ps --format '{{.Names}}|{{.Ports}}' 2>$null
+foreach ($linha in $containersRodando) {
+    foreach ($porta in $portasAlvo) {
+        if ($linha -match ":${porta}->") {
+            $nomeContainer = $linha.Split('|')[0]
+            Write-Host "   Parando container $nomeContainer (porta $porta)..." -ForegroundColor Yellow
+            docker stop $nomeContainer 2>&1 | Out-Null
+        }
+    }
+}
+
+# Mata qualquer processo local usando a porta 3001
+$proc3001 = netstat -ano | Select-String ":3001\s.*LISTENING" | ForEach-Object {
+    ($_ -split '\s+')[-1]
+} | Select-Object -Unique
+foreach ($pid in $proc3001) {
+    if ($pid -and $pid -match '^\d+$' -and $pid -ne '0') {
+        Write-Host "   Encerrando processo PID $pid na porta 3001..." -ForegroundColor Yellow
+        Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Mata qualquer processo local usando a porta 3004
+$proc3004 = netstat -ano | Select-String ":3004\s.*LISTENING" | ForEach-Object {
+    ($_ -split '\s+')[-1]
+} | Select-Object -Unique
+foreach ($pid in $proc3004) {
+    if ($pid -and $pid -match '^\d+$' -and $pid -ne '0') {
+        Write-Host "   Encerrando processo PID $pid na porta 3004..." -ForegroundColor Yellow
+        Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+    }
+}
+
+Write-OK "Portas liberadas."
+
+# =============================================================
+#  3. Container PostgreSQL
 # =============================================================
 Write-Step "Iniciando container do PostgreSQL..."
 
@@ -92,7 +134,7 @@ if (-not $pgReady) {
 Write-OK "PostgreSQL esta aceitando conexoes."
 
 # =============================================================
-#  3. Migrations do Prisma
+#  4. Migrations do Prisma
 # =============================================================
 Write-Step "Aplicando migrations do Prisma..."
 
@@ -118,25 +160,14 @@ $env:DATABASE_URL = "postgresql://${pgUser}:${pgPass}@localhost:5432/${pgDb}?sch
 Set-Location $Backend
 $migrateOut = npm exec -- prisma migrate deploy 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "   [AVISO] Migration via npm exec falhou, tentando via node..." -ForegroundColor Yellow
-    $prismaJs = Get-ChildItem -Path "node_modules\prisma" -Filter "*.js" -Recurse -ErrorAction SilentlyContinue |
-                Where-Object { $_.Name -match "^(index|bin|cli)\.js$" } |
-                Select-Object -First 1 -ExpandProperty FullName
-    if ($prismaJs) {
-        $migrateOut = node $prismaJs migrate deploy 2>&1
-    }
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "   [AVISO] Nao foi possivel aplicar migrations automaticamente." -ForegroundColor Yellow
-        Write-Host "           Execute manualmente: cd backend; npx prisma migrate deploy" -ForegroundColor Yellow
-    } else {
-        Write-OK "Migrations aplicadas."
-    }
+    Write-Host "   [AVISO] Nao foi possivel aplicar migrations automaticamente." -ForegroundColor Yellow
+    Write-Host "           Execute manualmente: cd backend; npx prisma migrate deploy" -ForegroundColor Yellow
 } else {
     Write-OK "Migrations aplicadas."
 }
 
 # =============================================================
-#  4. Backend — NestJS (janela separada)
+#  5. Backend — NestJS (janela separada)
 # =============================================================
 Write-Step "Iniciando Backend (NestJS)..."
 
@@ -149,7 +180,7 @@ Start-Process powershell -ArgumentList @(
 Write-OK "Backend iniciando na porta 3001 (nova janela)."
 
 # =============================================================
-#  5. Frontend — Next.js (janela separada)
+#  6. Frontend — Next.js (janela separada)
 # =============================================================
 Write-Step "Iniciando Frontend (Next.js)..."
 
