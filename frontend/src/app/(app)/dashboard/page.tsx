@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   Building2, FolderOpen, ScrollText, Users,
-  CheckCircle2, Clock, XCircle, FileText,
+  Clock, FileText, LayoutDashboard,
 } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar,
@@ -24,9 +24,7 @@ interface Stats {
   usuarios: number | null
   formularios: number | null
   respostas: number | null
-  enviadas: number | null
-  aprovadas: number | null
-  reprovadas: number | null
+  respondidos: number | null
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -100,7 +98,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({
     secretarias: null, diretorias: null,
     usuarios: null, formularios: null,
-    respostas: null, enviadas: null, aprovadas: null, reprovadas: null,
+    respostas: null, respondidos: null,
   })
   const [respostas, setRespostas] = useState<RespostaItem[]>([])
   const [formularios, setFormularios] = useState<FormularioItem[]>([])
@@ -127,9 +125,7 @@ export default function DashboardPage() {
         setStats((s) => ({
           ...s,
           respostas: d.length,
-          enviadas: d.filter((r) => ['ENVIADO','EM_REVISAO','APROVADO','REPROVADO'].includes(r.status)).length,
-          aprovadas: d.filter((r) => r.status === 'APROVADO').length,
-          reprovadas: d.filter((r) => r.status === 'REPROVADO').length,
+          respondidos: d.filter((r) => r.status !== 'RASCUNHO').length,
         }))
       }).catch(() => {})
   }, [])
@@ -139,14 +135,12 @@ export default function DashboardPage() {
   const barData = buildBarFormularios(formularios)
 
   const statCards = [
-    { label: 'Secretarias',   value: stats.secretarias, icon: Building2,    color: 'text-[#0f1b2d]' },
-    { label: 'Diretorias',    value: stats.diretorias,  icon: FolderOpen,   color: 'text-[#0f1b2d]' },
-    { label: 'Usuários',      value: stats.usuarios,    icon: Users,         color: 'text-[#0f1b2d]' },
-    { label: 'Formulários',   value: stats.formularios, icon: ScrollText,    color: 'text-[#0f1b2d]' },
-    { label: 'Total respostas', value: stats.respostas,  icon: FileText,     color: 'text-blue-600' },
-    { label: 'Enviadas',      value: stats.enviadas,    icon: Clock,         color: 'text-yellow-600' },
-    { label: 'Aprovadas',     value: stats.aprovadas,   icon: CheckCircle2,  color: 'text-green-600' },
-    { label: 'Reprovadas',    value: stats.reprovadas,  icon: XCircle,       color: 'text-red-600' },
+    { label: 'Secretarias',            value: stats.secretarias,  icon: Building2,        color: 'text-[#0f1b2d]' },
+    { label: 'Diretorias',             value: stats.diretorias,   icon: FolderOpen,        color: 'text-[#0f1b2d]' },
+    { label: 'Usuários',               value: stats.usuarios,     icon: Users,             color: 'text-[#0f1b2d]' },
+    { label: 'Formulários',            value: stats.formularios,  icon: ScrollText,        color: 'text-[#0f1b2d]' },
+    { label: 'Total respostas',        value: stats.respostas,    icon: FileText,          color: 'text-blue-600' },
+    { label: 'Formulários respondidos', value: stats.respondidos, icon: Clock,             color: 'text-yellow-600' },
   ]
 
   return (
@@ -173,6 +167,18 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         ))}
+
+        {/* Card futuro — painel de transparência */}
+        <Card className="border-dashed opacity-60">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Painel de transparência</CardTitle>
+            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-muted-foreground">—</div>
+            <p className="text-xs text-muted-foreground mt-1">Em desenvolvimento</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── Linha + Pie ── */}
