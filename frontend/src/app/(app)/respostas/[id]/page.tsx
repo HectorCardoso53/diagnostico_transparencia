@@ -245,16 +245,6 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
             {resposta.diretoria?.nome ?? '—'} · {resposta.usuario?.nome ?? '—'} · {formatDate(resposta.created_at)}
           </p>
         </div>
-        {isRascunho && canFill && (
-          <div className="flex gap-2 shrink-0">
-            <Button variant="outline" onClick={salvarRascunho} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar rascunho'}
-            </Button>
-            <Button onClick={enviar} disabled={saving}>
-              <Send className="h-4 w-4 mr-1" />Enviar
-            </Button>
-          </div>
-        )}
       </div>
 
       <div className={`grid grid-cols-1 gap-6 ${canReview ? 'lg:grid-cols-3' : ''}`}>
