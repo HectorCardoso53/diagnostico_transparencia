@@ -474,6 +474,18 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
               )
             })
           )}
+
+          {/* Botões no final da lista de campos */}
+          {isRascunho && canFill && (
+            <div className="flex gap-2 justify-end pt-2">
+              <Button variant="outline" onClick={salvarRascunho} disabled={saving}>
+                {saving ? 'Salvando...' : 'Salvar rascunho'}
+              </Button>
+              <Button onClick={enviar} disabled={saving}>
+                <Send className="h-4 w-4 mr-1" />Enviar
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Painel de revisão — só para admin */}
