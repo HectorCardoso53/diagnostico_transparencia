@@ -25,26 +25,38 @@ export default function LoginPage() {
   const [senha, setSenha]         = useState('')
   const [showLogin, setShowLogin]       = useState(false)
   const [loadingLogin, setLoadingLogin]   = useState(false)
-  const [showEsqueci, setShowEsqueci]     = useState(false)
-  const [emailRecup, setEmailRecup]       = useState('')
-  const [loadingRecup, setLoadingRecup]   = useState(false)
+  const [showEsqueci, setShowEsqueci]       = useState(false)
+  const [emailRecup, setEmailRecup]         = useState('')
+  const [novaSenhaRecup, setNovaSenhaRecup] = useState('')
+  const [confirmSenha, setConfirmSenha]     = useState('')
+  const [showNovaSenha, setShowNovaSenha]   = useState(false)
+  const [loadingRecup, setLoadingRecup]     = useState(false)
   const { login } = useAuth()
   const router = useRouter()
 
+  function fecharEsqueci() {
+    setShowEsqueci(false); setEmailRecup(''); setNovaSenhaRecup(''); setConfirmSenha('')
+  }
+
   async function handleRecuperarSenha(e: React.FormEvent) {
     e.preventDefault()
+    if (novaSenhaRecup.length < 6) { toast.error('A senha deve ter pelo menos 6 caracteres'); return }
+    if (novaSenhaRecup !== confirmSenha) { toast.error('As senhas não coincidem'); return }
     setLoadingRecup(true)
     try {
-      await fetch(`${API_URL}/auth/recuperar-senha`, {
+      const r = await fetch(`${API_URL}/auth/recuperar-senha`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailRecup }),
+        body: JSON.stringify({ email: emailRecup, novaSenha: novaSenhaRecup }),
       })
-      toast.success('Se o e-mail estiver cadastrado, você receberá a nova senha.')
-      setShowEsqueci(false)
-      setEmailRecup('')
-    } catch {
-      toast.error('Erro ao processar solicitação')
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({})) as { message?: string }
+        throw new Error(err?.message ?? 'Erro ao alterar senha')
+      }
+      toast.success('Senha alterada com sucesso!')
+      fecharEsqueci()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao alterar senha')
     } finally {
       setLoadingRecup(false)
     }
@@ -204,22 +216,38 @@ export default function LoginPage() {
             {showEsqueci && (
               <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
                 <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-sm mx-4">
-                  <h2 className="text-lg font-bold text-gray-900 mb-1">Esqueci a senha</h2>
-                  <p className="text-sm text-gray-500 mb-5">Informe seu e-mail e enviaremos uma nova senha.</p>
+                  <h2 className="text-lg font-bold text-gray-900 mb-1">Alterar senha</h2>
+                  <p className="text-sm text-gray-500 mb-5">Informe seu e-mail e escolha uma nova senha.</p>
                   <form onSubmit={handleRecuperarSenha} className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-gray-700">E-mail <span className="text-red-500">*</span></label>
                       <Input type="email" placeholder="seu@email.gov.br" value={emailRecup}
                         onChange={(e) => setEmailRecup(e.target.value)} required autoFocus className="h-11" />
                     </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700">Nova senha <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <Input type={showNovaSenha ? 'text' : 'password'} placeholder="Mínimo 6 caracteres"
+                          value={novaSenhaRecup} onChange={(e) => setNovaSenhaRecup(e.target.value)} required className="h-11 pr-9" />
+                        <button type="button" onClick={() => setShowNovaSenha((v) => !v)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
+                          {showNovaSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700">Confirmar senha <span className="text-red-500">*</span></label>
+                      <Input type="password" placeholder="Repita a nova senha"
+                        value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} required className="h-11" />
+                    </div>
                     <div className="flex gap-2 pt-1">
-                      <button type="button" onClick={() => { setShowEsqueci(false); setEmailRecup('') }}
+                      <button type="button" onClick={fecharEsqueci}
                         className="flex-1 h-11 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white cursor-pointer">
                         Cancelar
                       </button>
                       <Button type="submit" className="flex-1 h-11 text-white font-semibold"
                         style={{ background: '#1a3a5c' }} disabled={loadingRecup}>
-                        {loadingRecup ? 'Enviando...' : 'Enviar'}
+                        {loadingRecup ? 'Salvando...' : 'Salvar'}
                       </Button>
                     </div>
                   </form>

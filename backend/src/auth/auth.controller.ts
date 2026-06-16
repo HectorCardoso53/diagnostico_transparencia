@@ -40,8 +40,8 @@ export class AuthController {
 
   @Post('recuperar-senha')
   @HttpCode(HttpStatus.OK)
-  recuperarSenha(@Body('email') email: string) {
-    return this.authService.recuperarSenha(email);
+  recuperarSenha(@Body('email') email: string, @Body('novaSenha') novaSenha: string) {
+    return this.authService.recuperarSenha(email, novaSenha);
   }
 
   @Get('opcoes')

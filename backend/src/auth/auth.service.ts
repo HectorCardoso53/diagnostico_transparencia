@@ -51,15 +51,12 @@ export class AuthService {
     return { message: 'Cadastro realizado! Aguarde a liberação do seu acesso pelo administrador.' };
   }
 
-  async recuperarSenha(email: string) {
+  async recuperarSenha(email: string, novaSenha: string) {
     const user = await this.prisma.user.findUnique({ where: { email, ativo: true } });
-    if (user) {
-      const novaSenha = this.gerarSenhaTemp();
-      const senha_hash = await bcrypt.hash(novaSenha, 12);
-      await this.prisma.user.update({ where: { id: user.id }, data: { senha_hash } });
-      this.email.sendRecuperacaoSenha(user.nome, user.email, novaSenha).catch(() => {});
-    }
-    return { message: 'Se o e-mail estiver cadastrado, você receberá a nova senha.' };
+    if (!user) throw new UnauthorizedException('E-mail não encontrado');
+    const senha_hash = await bcrypt.hash(novaSenha, 12);
+    await this.prisma.user.update({ where: { id: user.id }, data: { senha_hash } });
+    return { message: 'Senha alterada com sucesso!' };
   }
 
   private gerarSenhaTemp(): string {
