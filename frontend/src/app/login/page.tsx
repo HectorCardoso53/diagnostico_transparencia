@@ -88,14 +88,14 @@ export default function LoginPage() {
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
-
-            <p className="text-center text-sm text-gray-500 mt-4">
-              Não tem conta?{' '}
-              <Link href="/cadastro" className="text-[#2563eb] hover:underline font-medium">
-                Criar conta
-              </Link>
-            </p>
           </form>
+
+          <p className="text-center text-sm text-gray-500 mt-4">
+            Não tem conta?{' '}
+            <Link href="/cadastro" className="text-[#2563eb] hover:underline font-medium">
+              Criar conta
+            </Link>
+          </p>
         </CardContent>
       </Card>
 
