@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
@@ -92,9 +91,9 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-4">
             Não tem conta?{' '}
-            <Link href="/cadastro" className="text-[#2563eb] hover:underline font-medium">
+            <a href="/cadastro" className="text-[#2563eb] hover:underline font-medium">
               Criar conta
-            </Link>
+            </a>
           </p>
         </CardContent>
       </Card>
