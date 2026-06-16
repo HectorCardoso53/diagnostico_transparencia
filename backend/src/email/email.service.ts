@@ -49,6 +49,7 @@ export class EmailService {
         <!-- Cabeçalho -->
         <tr>
           <td style="background:#1a3a5c;padding:32px 40px;text-align:center;">
+            <img src="https://diagnostico.oriximina.pa.gov.br/img/prefeitura.png" alt="Logo Prefeitura" width="64" height="64" style="border-radius:8px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto;" />
             <p style="margin:0;color:#94a3b8;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Prefeitura de Oriximiná</p>
             <h1 style="margin:8px 0 0;color:#ffffff;font-size:20px;font-weight:700;">Sistema de Diagnóstico das Secretarias</h1>
           </td>
@@ -92,10 +93,6 @@ export class EmailService {
               </tr>
             </table>
 
-            <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
-              Por segurança, recomendamos que você altere sua senha após o primeiro acesso.<br>
-              Em caso de dúvidas, entre em contato com o administrador do sistema.
-            </p>
           </td>
         </tr>
 
