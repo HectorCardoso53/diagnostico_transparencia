@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { Role } from '../generated/prisma/enums';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -16,9 +17,17 @@ interface CurrentUser {
   secretaria_id: string | null;
 }
 
+function gerarSenhaTemp(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
 @Injectable()
 export class UsuariosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private email: EmailService,
+  ) {}
 
   findAll(
     filters: {
@@ -92,20 +101,26 @@ export class UsuariosService {
 
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
 
+    let usuario: { id: string; nome: string; email: string; role: string; created_at: Date };
+
     if (existing) {
       if (existing.ativo) throw new ConflictException('E-mail já cadastrado');
-      // Reativa usuário inativo com os novos dados
-      return this.prisma.user.update({
+      usuario = await this.prisma.user.update({
         where: { id: existing.id },
         data: { ...rest, senha_hash, ativo: true, refresh_token: null },
         select: { id: true, nome: true, email: true, role: true, created_at: true },
       });
+    } else {
+      usuario = await this.prisma.user.create({
+        data: { ...rest, senha_hash },
+        select: { id: true, nome: true, email: true, role: true, created_at: true },
+      });
     }
 
-    return this.prisma.user.create({
-      data: { ...rest, senha_hash },
-      select: { id: true, nome: true, email: true, role: true, created_at: true },
-    });
+    // Envia e-mail de boas-vindas sem bloquear a resposta
+    this.email.sendBoasVindas(usuario.nome, usuario.email, senha).catch(() => {});
+
+    return usuario;
   }
 
   async update(id: string, dto: UpdateUsuarioDto, currentUser: CurrentUser) {
@@ -139,6 +154,26 @@ export class UsuariosService {
     });
   }
 
+  async reenviarAcesso(id: string) {
+    const u = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, nome: true, email: true, ativo: true },
+    });
+    if (!u) throw new NotFoundException('Usuário não encontrado');
+
+    const novaSenha = gerarSenhaTemp();
+    const senha_hash = await bcrypt.hash(novaSenha, 12);
+
+    await this.prisma.user.update({
+      where: { id },
+      data: { senha_hash, refresh_token: null },
+    });
+
+    await this.email.sendBoasVindas(u.nome, u.email, novaSenha);
+
+    return { message: 'E-mail enviado com nova senha temporária' };
+  }
+
   private async assertExists(id: string) {
     const u = await this.prisma.user.findUnique({ where: { id } });
     if (!u) throw new NotFoundException('Usuário não encontrado');
@@ -147,7 +182,7 @@ export class UsuariosService {
 
   private assertCanManageRole(role: Role | undefined, user: CurrentUser) {
     if (!role) return;
-    if (user.role === Role.SUPER_ADMIN) return; // SUPER_ADMIN pode atribuir qualquer role
+    if (user.role === Role.SUPER_ADMIN) return;
     const hierarchy: Record<Role, number> = {
       [Role.SUPER_ADMIN]: 5,
       [Role.ADMIN]: 4,

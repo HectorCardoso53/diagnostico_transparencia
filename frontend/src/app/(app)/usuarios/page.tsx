@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Pencil, Plus, Trash2, ClipboardList } from 'lucide-react'
+import { Pencil, Plus, Trash2, ClipboardList, Eye, EyeOff, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -49,6 +49,7 @@ export default function UsuariosPage() {
   const [editing, setEditing]       = useState<Usuario | null>(null)
   const [form, setForm]             = useState(emptyForm)
   const [saving, setSaving]         = useState(false)
+  const [showSenha, setShowSenha]   = useState(false)
 
   const load = useCallback(() => {
     const q = new URLSearchParams({ ativo: 'true' })
@@ -158,6 +159,15 @@ export default function UsuariosPage() {
     }
   }
 
+  async function reenviarAcesso(id: string, nome: string) {
+    try {
+      await api.post(`/usuarios/${id}/reenviar-acesso`, {})
+      toast.success(`Acesso reenviado para ${nome}`)
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao reenviar acesso')
+    }
+  }
+
   const canSave = form.nome.trim() && form.email.trim() && (editing || form.senha.trim())
 
   return (
@@ -196,6 +206,7 @@ export default function UsuariosPage() {
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(u.created_at)}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" title="Reenviar acesso por e-mail" onClick={() => reenviarAcesso(u.id, u.nome)}><Mail className="h-3.5 w-3.5" /></Button>
                     <Button size="icon" variant="ghost" onClick={() => openEdit(u)}><Pencil className="h-3.5 w-3.5" /></Button>
                     <Button size="icon" variant="ghost" className="text-destructive" onClick={() => remove(u.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
@@ -227,7 +238,22 @@ export default function UsuariosPage() {
             </div>
             <div className="space-y-1.5">
               <Label>{editing ? 'Nova senha (deixe vazio para manter)' : 'Senha *'}</Label>
-              <Input type="password" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} />
+              <div className="relative">
+                <Input
+                  type={showSenha ? 'text' : 'password'}
+                  value={form.senha}
+                  onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                  className="pr-9"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSenha((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             {/* Role */}

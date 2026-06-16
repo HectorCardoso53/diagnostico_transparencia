@@ -78,4 +78,10 @@ export class UsuariosController {
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
+
+  @Post(':id/reenviar-acesso')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  reenviarAcesso(@Param('id') id: string) {
+    return this.service.reenviarAcesso(id);
+  }
 }
