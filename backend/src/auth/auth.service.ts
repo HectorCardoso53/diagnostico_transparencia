@@ -6,6 +6,7 @@ import { EmailService } from '../email/email.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
+import { Role } from '../generated/prisma/enums';
 
 @Injectable()
 export class AuthService {
@@ -21,20 +22,49 @@ export class AuthService {
 
     const senha_hash = await bcrypt.hash(dto.senha, 12);
 
+    const allowedRoles: Role[] = [Role.SECRETARIO, Role.DIRETOR, Role.OPERADOR];
+    const role: Role = dto.role && allowedRoles.includes(dto.role as Role)
+      ? (dto.role as Role)
+      : Role.OPERADOR;
+
     const user = existing
       ? await this.prisma.user.update({
           where: { id: existing.id },
-          data: { nome: dto.nome, senha_hash, ativo: true, refresh_token: null },
+          data: {
+            nome: dto.nome, senha_hash, role, ativo: true, refresh_token: null,
+            secretaria_id: dto.secretaria_id ?? null,
+            diretoria_id: dto.diretoria_id ?? null,
+          },
           select: { id: true, nome: true, email: true, role: true },
         })
       : await this.prisma.user.create({
-          data: { nome: dto.nome, email: dto.email, senha_hash, role: 'OPERADOR' },
+          data: {
+            nome: dto.nome, email: dto.email, senha_hash, role,
+            secretaria_id: dto.secretaria_id ?? null,
+            diretoria_id: dto.diretoria_id ?? null,
+          },
           select: { id: true, nome: true, email: true, role: true },
         });
 
     this.email.sendBoasVindas(user.nome, user.email, dto.senha).catch(() => {});
 
     return { message: 'Cadastro realizado! Aguarde a liberação do seu acesso pelo administrador.' };
+  }
+
+  async getPublicOptions() {
+    const [secretarias, diretorias] = await Promise.all([
+      this.prisma.secretaria.findMany({
+        where: { ativo: true },
+        select: { id: true, nome: true, sigla: true },
+        orderBy: { nome: 'asc' },
+      }),
+      this.prisma.diretoria.findMany({
+        where: { ativo: true },
+        select: { id: true, nome: true, sigla: true, secretaria_id: true },
+        orderBy: { nome: 'asc' },
+      }),
+    ]);
+    return { secretarias, diretorias };
   }
 
   async login(dto: LoginDto) {

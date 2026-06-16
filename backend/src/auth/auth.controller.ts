@@ -38,6 +38,11 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @Get('opcoes')
+  getPublicOptions() {
+    return this.authService.getPublicOptions();
+  }
+
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(

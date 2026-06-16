@@ -16,6 +16,7 @@ export interface AuthUser {
 
 interface AuthCtx {
   user: AuthUser | null
+  loading: boolean
   isAuthenticated: boolean
   login: (email: string, senha: string) => Promise<void>
   logout: () => Promise<void>
@@ -87,10 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = '/login'
   }, [])
 
-  if (loading) return null
-
   return (
-    <Ctx.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <Ctx.Provider value={{ user, loading, isAuthenticated: !!user, login, logout }}>
       {children}
     </Ctx.Provider>
   )
