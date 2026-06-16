@@ -155,7 +155,7 @@ if (Test-Path $envFile) {
     }
 }
 
-$env:DATABASE_URL = "postgresql://${pgUser}:${pgPass}@localhost:5432/${pgDb}?schema=public"
+$env:DATABASE_URL = "postgresql://${pgUser}:${pgPass}@localhost:5433/${pgDb}?schema=public"
 
 Set-Location $Backend
 $migrateOut = npm exec -- prisma migrate deploy 2>&1
