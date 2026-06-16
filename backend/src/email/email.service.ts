@@ -48,7 +48,7 @@ export class EmailService {
 
         <!-- Cabeçalho -->
         <tr>
-          <td style="background:#0f1b2d;padding:32px 40px;text-align:center;">
+          <td style="background:#1a3a5c;padding:32px 40px;text-align:center;">
             <p style="margin:0;color:#94a3b8;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Prefeitura de Oriximiná</p>
             <h1 style="margin:8px 0 0;color:#ffffff;font-size:20px;font-weight:700;">Sistema de Diagnóstico das Secretarias</h1>
           </td>
@@ -59,7 +59,7 @@ export class EmailService {
           <td style="padding:36px 40px;">
             <p style="margin:0 0 8px;color:#1e293b;font-size:16px;">Olá, <strong>${nome}</strong>!</p>
             <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
-              Sua conta foi criada no Sistema de Diagnóstico das Secretarias. Use as credenciais abaixo para acessar o sistema.
+              Seu cadastro no Sistema de Diagnóstico das Secretarias foi realizado com sucesso. Use as credenciais abaixo para acessar o sistema.
             </p>
 
             <!-- Credenciais -->

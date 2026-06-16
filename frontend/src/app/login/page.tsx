@@ -91,7 +91,7 @@ export default function LoginPage() {
         const err = await r.json().catch(() => ({})) as { message?: string }
         throw new Error(err?.message ?? 'Erro ao cadastrar')
       }
-      toast.success('Cadastro realizado! Aguarde a liberação do seu acesso.')
+      toast.success('Cadastro realizado! Verifique seu e-mail com login e senha.')
       setModo('login')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erro ao cadastrar')
