@@ -30,12 +30,13 @@ export default function LoginPage() {
   const [novaSenhaRecup, setNovaSenhaRecup] = useState('')
   const [confirmSenha, setConfirmSenha]     = useState('')
   const [showNovaSenha, setShowNovaSenha]   = useState(false)
+  const [showConfirm, setShowConfirm]       = useState(false)
   const [loadingRecup, setLoadingRecup]     = useState(false)
   const { login } = useAuth()
   const router = useRouter()
 
   function fecharEsqueci() {
-    setShowEsqueci(false); setEmailRecup(''); setNovaSenhaRecup(''); setConfirmSenha('')
+    setShowEsqueci(false); setEmailRecup(''); setNovaSenhaRecup(''); setConfirmSenha(''); setShowNovaSenha(false); setShowConfirm(false)
   }
 
   async function handleRecuperarSenha(e: React.FormEvent) {
@@ -237,8 +238,14 @@ export default function LoginPage() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-gray-700">Confirmar senha <span className="text-red-500">*</span></label>
-                      <Input type="password" placeholder="Repita a nova senha"
-                        value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} required className="h-11" />
+                      <div className="relative">
+                        <Input type={showConfirm ? 'text' : 'password'} placeholder="Repita a nova senha"
+                          value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} required className="h-11 pr-9" />
+                        <button type="button" onClick={() => setShowConfirm((v) => !v)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
+                          {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
                     <div className="flex gap-2 pt-1">
                       <button type="button" onClick={fecharEsqueci}
