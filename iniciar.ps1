@@ -82,10 +82,10 @@ foreach ($linha in $containersRodando) {
 $proc3001 = netstat -ano | Select-String ":3001\s.*LISTENING" | ForEach-Object {
     ($_ -split '\s+')[-1]
 } | Select-Object -Unique
-foreach ($pid in $proc3001) {
-    if ($pid -and $pid -match '^\d+$' -and $pid -ne '0') {
-        Write-Host "   Encerrando processo PID $pid na porta 3001..." -ForegroundColor Yellow
-        Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+foreach ($procId in $proc3001) {
+    if ($procId -and $procId -match '^\d+$' -and $procId -ne '0') {
+        Write-Host "   Encerrando processo PID $procId na porta 3001..." -ForegroundColor Yellow
+        Stop-Process -Id ([int]$procId) -Force -ErrorAction SilentlyContinue
     }
 }
 
@@ -93,10 +93,10 @@ foreach ($pid in $proc3001) {
 $proc3004 = netstat -ano | Select-String ":3004\s.*LISTENING" | ForEach-Object {
     ($_ -split '\s+')[-1]
 } | Select-Object -Unique
-foreach ($pid in $proc3004) {
-    if ($pid -and $pid -match '^\d+$' -and $pid -ne '0') {
-        Write-Host "   Encerrando processo PID $pid na porta 3004..." -ForegroundColor Yellow
-        Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+foreach ($procId in $proc3004) {
+    if ($procId -and $procId -match '^\d+$' -and $procId -ne '0') {
+        Write-Host "   Encerrando processo PID $procId na porta 3004..." -ForegroundColor Yellow
+        Stop-Process -Id ([int]$procId) -Force -ErrorAction SilentlyContinue
     }
 }
 
@@ -108,10 +108,13 @@ Write-OK "Portas liberadas."
 Write-Step "Iniciando container do PostgreSQL..."
 
 Set-Location $Root
-docker compose up -d postgres 2>&1 | Out-Null
-
+$composeOut = docker compose up -d postgres 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Fail "Falha ao iniciar o container. Verifique o docker-compose.yml."
+    Write-Fail "Falha ao iniciar o container PostgreSQL."
+    Write-Host ""
+    Write-Host $composeOut -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Fail "Verifique se a porta 5433 esta livre e o docker-compose.yml esta correto."
     exit 1
 }
 
@@ -155,7 +158,7 @@ if (Test-Path $envFile) {
     }
 }
 
-$env:DATABASE_URL = "postgresql://${pgUser}:${pgPass}@localhost:5433/${pgDb}?schema=public"
+$env:DATABASE_URL = "postgresql://${pgUser}:${pgPass}@localhost:5435/${pgDb}?schema=public"
 
 Set-Location $Backend
 $migrateOut = npm exec -- prisma migrate deploy 2>&1
