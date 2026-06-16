@@ -9,9 +9,11 @@ export class EmailService {
 
   constructor(private config: ConfigService) {
     const host = config.get<string>('SMTP_HOST');
-    const port = config.get<number>('SMTP_PORT') ?? 587;
+    const port = Number(config.get('SMTP_PORT') ?? 587);
     const user = config.get<string>('SMTP_USER');
     const pass = config.get<string>('SMTP_PASS');
+
+    this.logger.log(`SMTP config → host=${host} port=${port} user=${user} pass=${pass ? '***configurado***' : 'VAZIO'}`);
 
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({
@@ -20,6 +22,7 @@ export class EmailService {
         secure: port === 465,
         auth: { user, pass },
       });
+      this.logger.log('Transporter SMTP criado com sucesso');
     } else {
       this.logger.warn('SMTP não configurado — e-mails não serão enviados. Defina SMTP_HOST, SMTP_USER e SMTP_PASS no .env');
     }
@@ -108,16 +111,21 @@ export class EmailService {
 </body>
 </html>`;
 
+    this.logger.log(`Tentando enviar e-mail para ${email} via ${this.config.get('SMTP_HOST')}`);
     try {
-      await this.transporter.sendMail({
+      const info = await this.transporter.sendMail({
         from,
         to: email,
         subject: 'Acesso ao Sistema de Diagnóstico das Secretarias — Oriximiná',
         html,
       });
-      this.logger.log(`E-mail de boas-vindas enviado para ${email}`);
+      this.logger.log(`E-mail enviado com sucesso para ${email} — messageId: ${info.messageId}`);
     } catch (err) {
-      this.logger.error(`Falha ao enviar e-mail para ${email}: ${(err as Error).message}`);
+      const error = err as Error & { code?: string; response?: string };
+      this.logger.error(`FALHA ao enviar e-mail para ${email}`);
+      this.logger.error(`  code: ${error.code ?? 'n/a'}`);
+      this.logger.error(`  message: ${error.message}`);
+      this.logger.error(`  response: ${error.response ?? 'n/a'}`);
     }
   }
 }

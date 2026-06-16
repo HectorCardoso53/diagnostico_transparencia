@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -24,6 +25,8 @@ function gerarSenhaTemp(): string {
 
 @Injectable()
 export class UsuariosService {
+  private readonly logger = new Logger(UsuariosService.name);
+
   constructor(
     private prisma: PrismaService,
     private email: EmailService,
@@ -118,7 +121,10 @@ export class UsuariosService {
     }
 
     // Envia e-mail de boas-vindas sem bloquear a resposta
-    this.email.sendBoasVindas(usuario.nome, usuario.email, senha).catch(() => {});
+    this.logger.log(`Disparando e-mail de boas-vindas para ${usuario.email}`);
+    this.email.sendBoasVindas(usuario.nome, usuario.email, senha).catch((err) => {
+      this.logger.error(`Erro no e-mail de boas-vindas: ${(err as Error).message}`);
+    });
 
     return usuario;
   }
@@ -155,11 +161,13 @@ export class UsuariosService {
   }
 
   async reenviarAcesso(id: string) {
+    this.logger.log(`reenviarAcesso chamado para id=${id}`);
     const u = await this.prisma.user.findUnique({
       where: { id },
       select: { id: true, nome: true, email: true, ativo: true },
     });
     if (!u) throw new NotFoundException('Usuário não encontrado');
+    this.logger.log(`Reenviando acesso para ${u.email}`);
 
     const novaSenha = gerarSenhaTemp();
     const senha_hash = await bcrypt.hash(novaSenha, 12);
