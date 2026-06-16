@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
@@ -91,8 +92,15 @@ export default function LoginPage() {
         </CardContent>
       </Card>
 
+      <p className="text-sm text-gray-500 mt-4">
+        Não tem conta?{' '}
+        <Link href="/cadastro" className="text-[#2563eb] hover:underline font-medium">
+          Criar conta
+        </Link>
+      </p>
+
       {/* Rodapé */}
-      <p className="text-gray-400 text-xs mt-6">Sistema de Diagnóstico das Secretarias © 2026</p>
+      <p className="text-gray-400 text-xs mt-4">Sistema de Diagnóstico das Secretarias © 2026</p>
     </div>
   )
 }
