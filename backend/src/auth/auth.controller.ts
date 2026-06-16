@@ -38,6 +38,12 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @Post('recuperar-senha')
+  @HttpCode(HttpStatus.OK)
+  recuperarSenha(@Body('email') email: string) {
+    return this.authService.recuperarSenha(email);
+  }
+
   @Get('opcoes')
   getPublicOptions() {
     return this.authService.getPublicOptions();

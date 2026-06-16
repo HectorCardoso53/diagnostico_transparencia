@@ -24,9 +24,31 @@ export default function LoginPage() {
   const [email, setEmail]         = useState('')
   const [senha, setSenha]         = useState('')
   const [showLogin, setShowLogin]       = useState(false)
-  const [loadingLogin, setLoadingLogin] = useState(false)
+  const [loadingLogin, setLoadingLogin]   = useState(false)
+  const [showEsqueci, setShowEsqueci]     = useState(false)
+  const [emailRecup, setEmailRecup]       = useState('')
+  const [loadingRecup, setLoadingRecup]   = useState(false)
   const { login } = useAuth()
   const router = useRouter()
+
+  async function handleRecuperarSenha(e: React.FormEvent) {
+    e.preventDefault()
+    setLoadingRecup(true)
+    try {
+      await fetch(`${API_URL}/auth/recuperar-senha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailRecup }),
+      })
+      toast.success('Se o e-mail estiver cadastrado, você receberá a nova senha.')
+      setShowEsqueci(false)
+      setEmailRecup('')
+    } catch {
+      toast.error('Erro ao processar solicitação')
+    } finally {
+      setLoadingRecup(false)
+    }
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -163,7 +185,14 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <p className="text-center text-sm text-gray-500 mt-5">
+            <p className="text-center mt-3">
+              <button type="button" onClick={() => setShowEsqueci(true)}
+                className="text-xs text-gray-400 hover:underline bg-transparent border-0 p-0 cursor-pointer">
+                Esqueci a senha
+              </button>
+            </p>
+
+            <p className="text-center text-sm text-gray-500 mt-3">
               Não tem conta?{' '}
               <button type="button" onClick={() => setModo('cadastro')}
                 className="font-semibold hover:underline bg-transparent border-0 p-0 cursor-pointer"
@@ -171,6 +200,33 @@ export default function LoginPage() {
                 Criar conta
               </button>
             </p>
+
+            {/* Modal Esqueci a senha */}
+            {showEsqueci && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-sm mx-4">
+                  <h2 className="text-lg font-bold text-gray-900 mb-1">Esqueci a senha</h2>
+                  <p className="text-sm text-gray-500 mb-5">Informe seu e-mail e enviaremos uma nova senha.</p>
+                  <form onSubmit={handleRecuperarSenha} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-gray-700">E-mail <span className="text-red-500">*</span></label>
+                      <Input type="email" placeholder="seu@email.gov.br" value={emailRecup}
+                        onChange={(e) => setEmailRecup(e.target.value)} required autoFocus className="h-11" />
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button type="button" onClick={() => { setShowEsqueci(false); setEmailRecup('') }}
+                        className="flex-1 h-11 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 bg-white cursor-pointer">
+                        Cancelar
+                      </button>
+                      <Button type="submit" className="flex-1 h-11 text-white font-semibold"
+                        style={{ background: '#1a3a5c' }} disabled={loadingRecup}>
+                        {loadingRecup ? 'Enviando...' : 'Enviar'}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <>

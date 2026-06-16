@@ -51,6 +51,22 @@ export class AuthService {
     return { message: 'Cadastro realizado! Aguarde a liberação do seu acesso pelo administrador.' };
   }
 
+  async recuperarSenha(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email, ativo: true } });
+    if (user) {
+      const novaSenha = this.gerarSenhaTemp();
+      const senha_hash = await bcrypt.hash(novaSenha, 12);
+      await this.prisma.user.update({ where: { id: user.id }, data: { senha_hash } });
+      this.email.sendRecuperacaoSenha(user.nome, user.email, novaSenha).catch(() => {});
+    }
+    return { message: 'Se o e-mail estiver cadastrado, você receberá a nova senha.' };
+  }
+
+  private gerarSenhaTemp(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  }
+
   async getPublicOptions() {
     const [secretarias, diretorias] = await Promise.all([
       this.prisma.secretaria.findMany({
