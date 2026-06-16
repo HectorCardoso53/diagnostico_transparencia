@@ -124,22 +124,18 @@ export class EmailService {
           <td style="padding:36px 40px;">
             <p style="margin:0 0 8px;color:#1e293b;font-size:16px;">Olá, <strong>${nome}</strong>!</p>
             <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
-              Seu cadastro no Sistema de Diagnóstico das Secretarias foi realizado com sucesso. Use as credenciais abaixo para acessar o sistema.
+              Bem-vindo ao Sistema de Diagnóstico das Secretarias. Use o sistema com seu login e senha cadastrados.
             </p>
 
-            <!-- Credenciais -->
+            <!-- Login -->
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:24px;">
               <tr>
                 <td style="padding:20px 24px;">
-                  <p style="margin:0 0 12px;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Suas credenciais</p>
+                  <p style="margin:0 0 12px;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Seu login</p>
                   <table cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="color:#64748b;font-size:13px;padding:4px 0;width:60px;">E-mail:</td>
                       <td style="color:#1e293b;font-size:13px;font-weight:600;padding:4px 0;">${email}</td>
-                    </tr>
-                    <tr>
-                      <td style="color:#64748b;font-size:13px;padding:4px 0;">Senha:</td>
-                      <td style="color:#1e293b;font-size:13px;font-weight:600;padding:4px 0;font-family:monospace;">${senha}</td>
                     </tr>
                   </table>
                 </td>

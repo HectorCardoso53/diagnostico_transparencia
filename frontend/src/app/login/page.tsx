@@ -174,6 +174,12 @@ export default function LoginPage() {
                     {showLogin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => setShowEsqueci(true)}
+                    className="text-xs text-gray-400 hover:underline bg-transparent border-0 p-0 cursor-pointer">
+                    Esqueci a senha
+                  </button>
+                </div>
               </div>
               <Button
                 type="submit"
@@ -184,13 +190,6 @@ export default function LoginPage() {
                 {loadingLogin ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
-
-            <p className="text-center mt-3">
-              <button type="button" onClick={() => setShowEsqueci(true)}
-                className="text-xs text-gray-400 hover:underline bg-transparent border-0 p-0 cursor-pointer">
-                Esqueci a senha
-              </button>
-            </p>
 
             <p className="text-center text-sm text-gray-500 mt-3">
               Não tem conta?{' '}
