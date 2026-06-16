@@ -177,9 +177,11 @@ export class UsuariosService {
       data: { senha_hash, refresh_token: null },
     });
 
-    await this.email.sendBoasVindas(u.nome, u.email, novaSenha);
+    this.email.sendBoasVindas(u.nome, u.email, novaSenha).catch((err) => {
+      this.logger.error(`Erro ao reenviar acesso para ${u.email}: ${(err as Error).message}`);
+    });
 
-    return { message: 'E-mail enviado com nova senha temporária' };
+    return { message: 'Acesso reenviado — senha temporária gerada e e-mail disparado' };
   }
 
   private async assertExists(id: string) {
