@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Eye, MoreHorizontal, Plus, Trash2, Archive, ClipboardList,
-  CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, GripVertical,
+  CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, GripVertical, MoveRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -73,7 +73,7 @@ interface Formulario {
   publicado_em: string | null
   created_at: string
   criador: { nome: string } | null
-  secretaria: { nome: string; sigla: string; tipo: 'SECRETARIA' | 'PGM' | 'GABINETE' } | null
+  secretaria: { id: string; nome: string; sigla: string; tipo: 'SECRETARIA' | 'PGM' | 'GABINETE' } | null
   atribuicoes: Atribuicao[]
   respostas: Resposta[]
 }
@@ -462,12 +462,13 @@ function PainelSecretario({ items }: { items: Formulario[] }) {
 
 /* ── Linha da tabela admin com suporte a drag ─────────────── */
 function SortableRow({
-  f, canManage, onArquivar, onExcluir,
+  f, canManage, onArquivar, onExcluir, onMover,
 }: {
   f: Formulario
   canManage: boolean
   onArquivar: (id: string) => void
   onExcluir: (f: Formulario) => void
+  onMover: (f: Formulario) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: f.id })
   const style = {
@@ -539,6 +540,9 @@ function SortableRow({
                 <DropdownMenuItem asChild>
                   <Link href={`/formularios/${f.id}`}>Editar / Ver</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onMover(f)}>
+                  <MoveRight className="h-3.5 w-3.5 mr-2" />Mover para secretaria
+                </DropdownMenuItem>
                 {f.status !== 'ARQUIVADO' && (
                   <DropdownMenuItem onClick={() => onArquivar(f.id)}>
                     <Archive className="h-3.5 w-3.5 mr-2" />Arquivar
@@ -575,6 +579,11 @@ export default function FormulariosPage() {
   const [filterSecretariaId, setFilterSecretariaId] = useState('')
   const [filterDiretoriaId, setFilterDiretoriaId]   = useState('')
   const [filterDiretorias, setFilterDiretorias]     = useState<Diretoria[]>([])
+
+  // Dialog mover para secretaria
+  const [moveForm, setMoveForm]         = useState<Formulario | null>(null)
+  const [moveSecretariaId, setMoveSecretariaId] = useState('')
+  const [moving, setMoving]             = useState(false)
 
   const isSecretario = user?.role === 'SECRETARIO'
   const isDiretor    = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
@@ -651,6 +660,20 @@ export default function FormulariosPage() {
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao criar formulário')
     } finally { setSaving(false) }
+  }
+
+  async function moverParaSecretaria() {
+    if (!moveForm || !moveSecretariaId) return
+    setMoving(true)
+    try {
+      await api.patch(`/formularios/${moveForm.id}`, { secretaria_id: moveSecretariaId })
+      toast.success('Formulário movido com sucesso')
+      setMoveForm(null)
+      setMoveSecretariaId('')
+      load()
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao mover formulário')
+    } finally { setMoving(false) }
   }
 
   async function arquivar(id: string) {
@@ -762,6 +785,7 @@ export default function FormulariosPage() {
                       canManage={canManage}
                       onArquivar={arquivar}
                       onExcluir={excluir}
+                      onMover={(form) => { setMoveForm(form); setMoveSecretariaId(form.secretaria?.id ?? '') }}
                     />
                   ))}
                   {items.length === 0 && (
@@ -864,6 +888,40 @@ export default function FormulariosPage() {
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={create} disabled={saving || !titulo.trim() || (!secretariaId && !user?.secretaria_id)}>
               {saving ? 'Criando...' : 'Criar e editar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* modal mover para secretaria */}
+      <Dialog open={!!moveForm} onOpenChange={(v) => { if (!v) { setMoveForm(null); setMoveSecretariaId('') } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Mover para secretaria</DialogTitle>
+            <DialogDescription>
+              Selecione a secretaria de destino para o formulário{' '}
+              <span className="font-medium text-foreground">"{moveForm?.titulo}"</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <Label className="mb-1.5 block">Secretaria *</Label>
+            <Select value={moveSecretariaId} onValueChange={setMoveSecretariaId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a secretaria..." />
+              </SelectTrigger>
+              <SelectContent>
+                {secretarias.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setMoveForm(null); setMoveSecretariaId('') }} disabled={moving}>
+              Cancelar
+            </Button>
+            <Button onClick={moverParaSecretaria} disabled={moving || !moveSecretariaId || moveSecretariaId === moveForm?.secretaria?.id}>
+              {moving ? 'Movendo...' : 'Mover'}
             </Button>
           </DialogFooter>
         </DialogContent>

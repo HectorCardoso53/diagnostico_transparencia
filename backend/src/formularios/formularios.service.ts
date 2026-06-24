@@ -141,6 +141,11 @@ export class FormulariosService {
     if (form.status === FormStatus.ARQUIVADO)
       throw new BadRequestException('Formulários arquivados não podem ser editados');
 
+    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN];
+    if (dto.secretaria_id && !adminRoles.includes(user.role)) {
+      throw new ForbiddenException('Apenas administradores podem transferir formulários entre secretarias');
+    }
+
     const novaVersao = dto.schema_json ? form.versao + 1 : form.versao;
 
     const updated = await this.prisma.formSchema.update({
@@ -152,6 +157,7 @@ export class FormulariosService {
           schema_json: dto.schema_json as any,
           versao: novaVersao,
         }),
+        ...(dto.secretaria_id && { secretaria_id: dto.secretaria_id }),
         ...(dto.prazo_inicio && { prazo_inicio: new Date(dto.prazo_inicio) }),
         ...(dto.prazo_fim && { prazo_fim: new Date(dto.prazo_fim) }),
       },

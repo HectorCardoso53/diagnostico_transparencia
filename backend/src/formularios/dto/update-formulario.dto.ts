@@ -15,6 +15,10 @@ export class UpdateFormularioDto {
 
   @IsString()
   @IsOptional()
+  secretaria_id?: string;
+
+  @IsString()
+  @IsOptional()
   prazo_inicio?: string;
 
   @IsString()
