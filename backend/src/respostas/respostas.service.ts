@@ -37,14 +37,14 @@ export class RespostasService {
         ...(filters.status && { status: filters.status }),
         ...(user.role === Role.OPERADOR && { user_id: user.id }),
       },
-      select: {
-        id: true,
-        status: true,
-        enviado_em: true,
-        created_at: true,
-        updated_at: true,
+      include: {
         form: { select: { id: true, titulo: true, versao: true } },
-        diretoria: { select: { id: true, nome: true } },
+        diretoria: {
+          select: {
+            id: true, nome: true,
+            secretaria: { select: { id: true, nome: true, sigla: true } },
+          },
+        },
         usuario: { select: { id: true, nome: true } },
       },
       orderBy: { updated_at: 'desc' },

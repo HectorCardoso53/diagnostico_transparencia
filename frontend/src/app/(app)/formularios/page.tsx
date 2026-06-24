@@ -256,9 +256,20 @@ function CardSecretarioResponde({ f }: { f: Formulario }) {
 /* ── Painel de formulários para secretários ───────────────── */
 function PainelSecretario({ items }: { items: Formulario[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [filterDir, setFilterDir]   = useState('')
 
   const semDiretoria = items.filter(f => f.atribuicoes.length === 0)
   const comDiretoria = items.filter(f => f.atribuicoes.length > 0)
+
+  const todasDiretorias = Array.from(
+    new Map(
+      comDiretoria.flatMap(f => f.atribuicoes.map(a => [a.diretoria.id, a.diretoria]))
+    ).values()
+  ).sort((a, b) => a.nome.localeCompare(b.nome))
+
+  const comDiretoriaFiltrada = filterDir
+    ? comDiretoria.filter(f => f.atribuicoes.some(a => a.diretoria.id === filterDir))
+    : comDiretoria
 
   function toggleExpand(id: string) {
     setExpandedId(prev => prev === id ? null : id)
@@ -294,16 +305,32 @@ function PainelSecretario({ items }: { items: Formulario[] }) {
       {/* Acompanhamento das diretorias */}
       {comDiretoria.length > 0 && (
         <section className="space-y-3">
-          {semDiretoria.length > 0 && (
+          <div className="flex items-end justify-between gap-4 flex-wrap">
             <div>
               <h2 className="text-sm font-semibold">Acompanhamento das diretorias</h2>
               <p className="text-xs text-muted-foreground">
                 Monitore o status das respostas das diretorias abaixo.
               </p>
             </div>
-          )}
+            {todasDiretorias.length > 1 && (
+              <Select value={filterDir || 'all'} onValueChange={v => setFilterDir(v === 'all' ? '' : v)}>
+                <SelectTrigger className="w-56 h-8 text-xs">
+                  <SelectValue placeholder="Todas as diretorias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as diretorias</SelectItem>
+                  {todasDiretorias.map(d => (
+                    <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
           <div className="space-y-4">
-            {comDiretoria.map(f => {
+            {comDiretoriaFiltrada.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic py-4 text-center">Nenhum formulário encontrado para esta diretoria.</p>
+            ) : null}
+            {comDiretoriaFiltrada.map(f => {
               const total      = f.atribuicoes.length
               const aprovadas  = f.respostas.filter(r => r.status === 'APROVADO').length
               const analise    = f.respostas.filter(r => r.status === 'ENVIADO' || r.status === 'EM_REVISAO').length
@@ -544,6 +571,11 @@ export default function FormulariosPage() {
   const [diretoriasSel, setDiretoriasSel] = useState<string[]>([])
   const [saving, setSaving]             = useState(false)
 
+  // Filtros da tabela admin
+  const [filterSecretariaId, setFilterSecretariaId] = useState('')
+  const [filterDiretoriaId, setFilterDiretoriaId]   = useState('')
+  const [filterDiretorias, setFilterDiretorias]     = useState<Diretoria[]>([])
+
   const isSecretario = user?.role === 'SECRETARIO'
   const isDiretor    = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
   const isResponder  = isSecretario || isDiretor
@@ -557,14 +589,16 @@ export default function FormulariosPage() {
     if (isSecretario) {
       q.set('status', 'PUBLICADO')
       if (user?.secretaria_id) q.set('secretaria_id', user.secretaria_id)
-    }
-    if (isDiretor) {
+    } else if (isDiretor) {
       q.set('status', 'PUBLICADO')
       if (user?.diretoria_id) q.set('diretoria_id', user.diretoria_id)
+    } else {
+      if (filterSecretariaId) q.set('secretaria_id', filterSecretariaId)
+      if (filterDiretoriaId)  q.set('diretoria_id',  filterDiretoriaId)
     }
     api.get<Formulario[]>(`/formularios?${q}`)
       .then(setItems).catch(() => toast.error('Erro ao carregar formulários'))
-  }, [search, isSecretario, isDiretor, user?.secretaria_id, user?.diretoria_id])
+  }, [search, filterSecretariaId, filterDiretoriaId, isSecretario, isDiretor, user?.secretaria_id, user?.diretoria_id])
 
   useEffect(() => { load() }, [load])
 
@@ -578,6 +612,13 @@ export default function FormulariosPage() {
       .then(setDiretorias).catch(() => {})
     setDiretoriasSel([])
   }, [secretariaId])
+
+  useEffect(() => {
+    if (!filterSecretariaId) { setFilterDiretorias([]); setFilterDiretoriaId(''); return }
+    api.get<Diretoria[]>(`/diretorias?secretaria_id=${filterSecretariaId}`)
+      .then(setFilterDiretorias).catch(() => {})
+    setFilterDiretoriaId('')
+  }, [filterSecretariaId])
 
   function openCreate() {
     setTitulo(''); setDescricao(''); setDiretoriasSel([])
@@ -656,8 +697,45 @@ export default function FormulariosPage() {
         )}
       </div>
 
-      <Input placeholder="Buscar por título..." value={search}
-        onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
+      <div className="flex items-center gap-2 flex-wrap">
+        <Input placeholder="Buscar por título..." value={search}
+          onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
+
+        {canManage && (
+          <>
+            <Select
+              value={filterSecretariaId || 'all'}
+              onValueChange={v => setFilterSecretariaId(v === 'all' ? '' : v)}
+            >
+              <SelectTrigger className="w-52">
+                <SelectValue placeholder="Todas as secretarias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as secretarias</SelectItem>
+                {secretarias.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filterDiretoriaId || 'all'}
+              onValueChange={v => setFilterDiretoriaId(v === 'all' ? '' : v)}
+              disabled={!filterSecretariaId}
+            >
+              <SelectTrigger className="w-52" disabled={!filterSecretariaId}>
+                <SelectValue placeholder={filterSecretariaId ? 'Todas as diretorias' : 'Selecione a secretaria'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as diretorias</SelectItem>
+                {filterDiretorias.map(d => (
+                  <SelectItem key={d.id} value={d.id}>{d.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </div>
 
       {isDiretor ? (
         <PainelDiretor items={items} diretoriaId={user?.diretoria_id ?? ''} />
