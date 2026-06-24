@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Eye, MoreHorizontal, Plus, Trash2, Archive, ClipboardList,
-  CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, GripVertical, MoveRight,
+  CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, ChevronRight, GripVertical, MoveRight, Building2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -585,6 +585,9 @@ export default function FormulariosPage() {
   const [moveSecretariaId, setMoveSecretariaId] = useState('')
   const [moving, setMoving]             = useState(false)
 
+  // Acordeões da view agrupada (admin)
+  const [openSecs, setOpenSecs]         = useState<Set<string>>(new Set(['__all__']))
+
   const isSecretario = user?.role === 'SECRETARIO'
   const isDiretor    = user?.role === 'DIRETOR' || user?.role === 'OPERADOR'
   const isResponder  = isSecretario || isDiretor
@@ -605,8 +608,11 @@ export default function FormulariosPage() {
       if (filterSecretariaId) q.set('secretaria_id', filterSecretariaId)
       if (filterDiretoriaId)  q.set('diretoria_id',  filterDiretoriaId)
     }
-    api.get<Formulario[]>(`/formularios?${q}`)
-      .then(setItems).catch(() => toast.error('Erro ao carregar formulários'))
+    api.get<Formulario[]>(`/formularios?${q}`).then(data => {
+      setItems(data)
+      // abre todas as secretarias por padrão
+      setOpenSecs(new Set(data.map(f => f.secretaria?.id ?? '__sem_secretaria__')))
+    }).catch(() => toast.error('Erro ao carregar formulários'))
   }, [search, filterSecretariaId, filterDiretoriaId, isSecretario, isDiretor, user?.secretaria_id, user?.diretoria_id])
 
   useEffect(() => { load() }, [load])
@@ -765,37 +771,128 @@ export default function FormulariosPage() {
       ) : isSecretario ? (
         <PainelSecretario items={items} />
       ) : (
-        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-          <SortableContext items={items.map(f => f.id)} strategy={verticalListSortingStrategy}>
-            <div className="rounded-lg border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-2 py-3 w-8" />
-                    {['Título', 'Órgão', 'Diretorias', 'Status', 'Versão', 'Criador', 'Publicado em', ''].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {items.map((f) => (
-                    <SortableRow
-                      key={f.id}
-                      f={f}
-                      canManage={canManage}
-                      onArquivar={arquivar}
-                      onExcluir={excluir}
-                      onMover={(form) => { setMoveForm(form); setMoveSecretariaId(form.secretaria?.id ?? '') }}
-                    />
-                  ))}
-                  {items.length === 0 && (
-                    <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Nenhum formulário encontrado</td></tr>
-                  )}
-                </tbody>
-              </table>
+        <div className="space-y-3">
+          {items.length === 0 && (
+            <div className="rounded-lg border px-4 py-10 text-center text-muted-foreground text-sm">
+              Nenhum formulário encontrado
             </div>
-          </SortableContext>
-        </DndContext>
+          )}
+          {(() => {
+            // agrupar por secretaria
+            const mapa = new Map<string, { secretaria: Formulario['secretaria']; forms: Formulario[] }>()
+            for (const f of items) {
+              const key = f.secretaria?.id ?? '__sem_secretaria__'
+              if (!mapa.has(key)) mapa.set(key, { secretaria: f.secretaria, forms: [] })
+              mapa.get(key)!.forms.push(f)
+            }
+            return Array.from(mapa.values()).map(({ secretaria, forms }) => {
+              const key    = secretaria?.id ?? '__sem_secretaria__'
+              const isOpen = openSecs.has(key)
+              return (
+                <div key={key} className="rounded-lg border overflow-hidden">
+                  {/* Cabeçalho secretaria */}
+                  <button
+                    onClick={() => setOpenSecs(prev => {
+                      const next = new Set(prev)
+                      next.has(key) ? next.delete(key) : next.add(key)
+                      return next
+                    })}
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-[#1a3a5c] text-white hover:bg-[#22496e] transition-colors text-left"
+                  >
+                    {isOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
+                    <Building2 className="h-4 w-4 shrink-0 opacity-70" />
+                    <span className="font-semibold text-sm flex-1">
+                      {secretaria?.nome ?? 'Sem secretaria'}
+                      {secretaria && secretaria.tipo !== 'SECRETARIA' && (
+                        <span className="ml-2 text-[10px] font-semibold text-amber-300 bg-amber-900/40 px-1.5 py-0.5 rounded">
+                          {secretaria.tipo}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-xs text-white/60 shrink-0">
+                      {forms.length} formulário{forms.length !== 1 ? 's' : ''}
+                    </span>
+                  </button>
+
+                  {/* Tabela de formulários */}
+                  {isOpen && (
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/30">
+                        <tr>
+                          {['Título', 'Diretorias', 'Status', 'Versão', 'Criador', 'Publicado em', ''].map(h => (
+                            <th key={h} className="px-4 py-2.5 text-left font-medium text-muted-foreground text-xs">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {forms.map(f => (
+                          <tr key={f.id} className="hover:bg-muted/20">
+                            <td className="px-4 py-3 font-medium">{f.titulo}</td>
+                            <td className="px-4 py-3">
+                              {f.atribuicoes.length === 0 ? (
+                                <span className="text-muted-foreground text-xs">—</span>
+                              ) : (
+                                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                  {f.atribuicoes.slice(0, 3).map(({ diretoria }) => (
+                                    <span key={diretoria.id} className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground leading-tight">
+                                      {diretoria.nome}
+                                    </span>
+                                  ))}
+                                  {f.atribuicoes.length > 3 && (
+                                    <span className="inline-block text-[11px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                                      +{f.atribuicoes.length - 3}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge variant={STATUS_VARIANT[f.status] ?? 'secondary'}>{STATUS_LABEL[f.status] ?? f.status}</Badge>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">v{f.versao}</td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{f.criador?.nome ?? '—'}</td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{f.publicado_em ? formatDate(f.publicado_em) : '—'}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1 justify-end">
+                                <Button size="icon" variant="ghost" className="h-7 w-7" asChild>
+                                  <Link href={`/formularios/${f.id}`}><Eye className="h-3.5 w-3.5" /></Link>
+                                </Button>
+                                {canManage && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem asChild>
+                                        <Link href={`/formularios/${f.id}`}>Editar / Ver</Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => { setMoveForm(f); setMoveSecretariaId(f.secretaria?.id ?? '') }}>
+                                        <MoveRight className="h-3.5 w-3.5 mr-2" />Mover para secretaria
+                                      </DropdownMenuItem>
+                                      {f.status !== 'ARQUIVADO' && (
+                                        <DropdownMenuItem onClick={() => arquivar(f.id)}>
+                                          <Archive className="h-3.5 w-3.5 mr-2" />Arquivar
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => excluir(f)} className="text-destructive focus:text-destructive">
+                                        <Trash2 className="h-3.5 w-3.5 mr-2" />Excluir
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )
+            })
+          })()}
+        </div>
       )}
 
       {/* modal criar */}
