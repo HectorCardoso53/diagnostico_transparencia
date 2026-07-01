@@ -242,7 +242,7 @@ export default function RespostaDetailPage({ params }: { params: Promise<{ id: s
             <Badge variant={STATUS_VARIANT[resposta.status] ?? 'secondary'}>{resposta.status}</Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {resposta.diretoria?.nome ?? '—'} · {resposta.usuario?.nome ?? '—'} · {formatDate(resposta.created_at)}
+            {resposta.diretoria?.nome ?? '—'} · {user?.nome ?? '—'} · {formatDate(resposta.created_at)}
           </p>
         </div>
       </div>
