@@ -230,7 +230,7 @@ export default function ResultadosPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="data" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                    <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v: number) => [v, 'Respostas']} />
+                    <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v) => [v, 'Respostas']} />
                     <Line type="monotone" dataKey="total" stroke="#1a3a5c" strokeWidth={2} dot={{ r: 4, fill: '#1a3a5c' }} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -250,7 +250,7 @@ export default function ResultadosPage() {
                     <BarChart layout="vertical" data={bySecretaria} margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
                       <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                       <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
-                      <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v: number) => [v, 'Respostas']} />
+                      <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v) => [v, 'Respostas']} />
                       <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                         {bySecretaria.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                       </Bar>
@@ -280,7 +280,7 @@ export default function ResultadosPage() {
                         >
                           {bySecretaria.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
-                        <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v: number) => [v, 'Respostas']} />
+                        <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v) => [v, 'Respostas']} />
                         <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
                       </PieChart>
                     </ResponsiveContainer>
