@@ -80,6 +80,16 @@ export type FormAtribuicao = Prisma.FormAtribuicaoModel
  */
 export type FormResponse = Prisma.FormResponseModel
 /**
+ * Model PesquisaOpiniao
+ * 
+ */
+export type PesquisaOpiniao = Prisma.PesquisaOpiniaoModel
+/**
+ * Model RespostaOpiniao
+ * 
+ */
+export type RespostaOpiniao = Prisma.RespostaOpiniaoModel
+/**
  * Model AuditLog
  * 
  */

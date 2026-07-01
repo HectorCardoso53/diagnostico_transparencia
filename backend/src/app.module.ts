@@ -10,6 +10,7 @@ import { DiretoriasModule } from './diretorias/diretorias.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { FormulariosModule } from './formularios/formularios.module';
 import { RespostasModule } from './respostas/respostas.module';
+import { PesquisasModule } from './pesquisas/pesquisas.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
@@ -21,6 +22,7 @@ import { RespostasModule } from './respostas/respostas.module';
     UsuariosModule,
     FormulariosModule,
     RespostasModule,
+    PesquisasModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },

@@ -49,6 +49,15 @@ export const OrgaoTipo = {
 export type OrgaoTipo = (typeof OrgaoTipo)[keyof typeof OrgaoTipo]
 
 
+export const PesquisaStatus = {
+  RASCUNHO: 'RASCUNHO',
+  PUBLICADA: 'PUBLICADA',
+  ENCERRADA: 'ENCERRADA'
+} as const
+
+export type PesquisaStatus = (typeof PesquisaStatus)[keyof typeof PesquisaStatus]
+
+
 export const AuditAction = {
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',

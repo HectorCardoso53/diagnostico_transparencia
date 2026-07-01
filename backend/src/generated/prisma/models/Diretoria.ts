@@ -181,7 +181,7 @@ export type DiretoriaGroupByOutputType = {
   id: string
   secretaria_id: string
   nome: string
-  sigla: string
+  sigla: string | null
   descricao: string | null
   responsavel: string | null
   email: string | null
@@ -215,7 +215,7 @@ export type DiretoriaWhereInput = {
   id?: Prisma.StringFilter<"Diretoria"> | string
   secretaria_id?: Prisma.StringFilter<"Diretoria"> | string
   nome?: Prisma.StringFilter<"Diretoria"> | string
-  sigla?: Prisma.StringFilter<"Diretoria"> | string
+  sigla?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   descricao?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   responsavel?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   email?: Prisma.StringNullableFilter<"Diretoria"> | string | null
@@ -232,7 +232,7 @@ export type DiretoriaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   secretaria_id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
-  sigla?: Prisma.SortOrder
+  sigla?: Prisma.SortOrderInput | Prisma.SortOrder
   descricao?: Prisma.SortOrderInput | Prisma.SortOrder
   responsavel?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -252,7 +252,7 @@ export type DiretoriaWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.DiretoriaWhereInput | Prisma.DiretoriaWhereInput[]
   secretaria_id?: Prisma.StringFilter<"Diretoria"> | string
   nome?: Prisma.StringFilter<"Diretoria"> | string
-  sigla?: Prisma.StringFilter<"Diretoria"> | string
+  sigla?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   descricao?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   responsavel?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   email?: Prisma.StringNullableFilter<"Diretoria"> | string | null
@@ -269,7 +269,7 @@ export type DiretoriaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   secretaria_id?: Prisma.SortOrder
   nome?: Prisma.SortOrder
-  sigla?: Prisma.SortOrder
+  sigla?: Prisma.SortOrderInput | Prisma.SortOrder
   descricao?: Prisma.SortOrderInput | Prisma.SortOrder
   responsavel?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,7 +288,7 @@ export type DiretoriaScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Diretoria"> | string
   secretaria_id?: Prisma.StringWithAggregatesFilter<"Diretoria"> | string
   nome?: Prisma.StringWithAggregatesFilter<"Diretoria"> | string
-  sigla?: Prisma.StringWithAggregatesFilter<"Diretoria"> | string
+  sigla?: Prisma.StringNullableWithAggregatesFilter<"Diretoria"> | string | null
   descricao?: Prisma.StringNullableWithAggregatesFilter<"Diretoria"> | string | null
   responsavel?: Prisma.StringNullableWithAggregatesFilter<"Diretoria"> | string | null
   email?: Prisma.StringNullableWithAggregatesFilter<"Diretoria"> | string | null
@@ -300,7 +300,7 @@ export type DiretoriaScalarWhereWithAggregatesInput = {
 export type DiretoriaCreateInput = {
   id?: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -317,7 +317,7 @@ export type DiretoriaUncheckedCreateInput = {
   id?: string
   secretaria_id: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -332,7 +332,7 @@ export type DiretoriaUncheckedCreateInput = {
 export type DiretoriaUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -349,7 +349,7 @@ export type DiretoriaUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   secretaria_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -365,7 +365,7 @@ export type DiretoriaCreateManyInput = {
   id?: string
   secretaria_id: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -377,7 +377,7 @@ export type DiretoriaCreateManyInput = {
 export type DiretoriaUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -390,7 +390,7 @@ export type DiretoriaUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   secretaria_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -549,7 +549,7 @@ export type DiretoriaUpdateOneWithoutRespostasNestedInput = {
 export type DiretoriaCreateWithoutSecretariaInput = {
   id?: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -564,7 +564,7 @@ export type DiretoriaCreateWithoutSecretariaInput = {
 export type DiretoriaUncheckedCreateWithoutSecretariaInput = {
   id?: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -609,7 +609,7 @@ export type DiretoriaScalarWhereInput = {
   id?: Prisma.StringFilter<"Diretoria"> | string
   secretaria_id?: Prisma.StringFilter<"Diretoria"> | string
   nome?: Prisma.StringFilter<"Diretoria"> | string
-  sigla?: Prisma.StringFilter<"Diretoria"> | string
+  sigla?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   descricao?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   responsavel?: Prisma.StringNullableFilter<"Diretoria"> | string | null
   email?: Prisma.StringNullableFilter<"Diretoria"> | string | null
@@ -621,7 +621,7 @@ export type DiretoriaScalarWhereInput = {
 export type DiretoriaCreateWithoutUsuariosInput = {
   id?: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -637,7 +637,7 @@ export type DiretoriaUncheckedCreateWithoutUsuariosInput = {
   id?: string
   secretaria_id: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -667,7 +667,7 @@ export type DiretoriaUpdateToOneWithWhereWithoutUsuariosInput = {
 export type DiretoriaUpdateWithoutUsuariosInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -683,7 +683,7 @@ export type DiretoriaUncheckedUpdateWithoutUsuariosInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   secretaria_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -697,7 +697,7 @@ export type DiretoriaUncheckedUpdateWithoutUsuariosInput = {
 export type DiretoriaCreateWithoutAtribuicoesInput = {
   id?: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -713,7 +713,7 @@ export type DiretoriaUncheckedCreateWithoutAtribuicoesInput = {
   id?: string
   secretaria_id: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -743,7 +743,7 @@ export type DiretoriaUpdateToOneWithWhereWithoutAtribuicoesInput = {
 export type DiretoriaUpdateWithoutAtribuicoesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -759,7 +759,7 @@ export type DiretoriaUncheckedUpdateWithoutAtribuicoesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   secretaria_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -773,7 +773,7 @@ export type DiretoriaUncheckedUpdateWithoutAtribuicoesInput = {
 export type DiretoriaCreateWithoutRespostasInput = {
   id?: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -789,7 +789,7 @@ export type DiretoriaUncheckedCreateWithoutRespostasInput = {
   id?: string
   secretaria_id: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -819,7 +819,7 @@ export type DiretoriaUpdateToOneWithWhereWithoutRespostasInput = {
 export type DiretoriaUpdateWithoutRespostasInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -835,7 +835,7 @@ export type DiretoriaUncheckedUpdateWithoutRespostasInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   secretaria_id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -849,7 +849,7 @@ export type DiretoriaUncheckedUpdateWithoutRespostasInput = {
 export type DiretoriaCreateManySecretariaInput = {
   id?: string
   nome: string
-  sigla: string
+  sigla?: string | null
   descricao?: string | null
   responsavel?: string | null
   email?: string | null
@@ -861,7 +861,7 @@ export type DiretoriaCreateManySecretariaInput = {
 export type DiretoriaUpdateWithoutSecretariaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -876,7 +876,7 @@ export type DiretoriaUpdateWithoutSecretariaInput = {
 export type DiretoriaUncheckedUpdateWithoutSecretariaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -891,7 +891,7 @@ export type DiretoriaUncheckedUpdateWithoutSecretariaInput = {
 export type DiretoriaUncheckedUpdateManyWithoutSecretariaInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   nome?: Prisma.StringFieldUpdateOperationsInput | string
-  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsavel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1035,7 +1035,7 @@ export type $DiretoriaPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     id: string
     secretaria_id: string
     nome: string
-    sigla: string
+    sigla: string | null
     descricao: string | null
     responsavel: string | null
     email: string | null

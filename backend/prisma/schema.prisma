@@ -44,6 +44,12 @@ enum OrgaoTipo {
   GABINETE
 }
 
+enum PesquisaStatus {
+  RASCUNHO
+  PUBLICADA
+  ENCERRADA
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -145,6 +151,7 @@ model User {
   diretoria      Diretoria?       @relation(fields: [diretoria_id], references: [id])
   formularios    FormSchema[]     @relation("FormCriador")
   respostas      FormResponse[]
+  pesquisas      PesquisaOpiniao[] @relation("PesquisaCriador")
   audit_logs     AuditLog[]
 
   @@map("users")
@@ -282,6 +289,44 @@ model FormResponse {
   usuario   User        @relation(fields: [user_id], references: [id])
 
   @@map("form_responses")
+}
+
+// =============================================================
+//  PESQUISA DE OPINIÃO (pública, sem login)
+// =============================================================
+
+model PesquisaOpiniao {
+  id            String         @id @default(uuid())
+  titulo        String
+  descricao     String?
+  schema_json   Json
+  status        PesquisaStatus @default(RASCUNHO)
+  criado_por_id String
+  publicado_em  DateTime?
+  encerrado_em  DateTime?
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+
+  criador   User              @relation("PesquisaCriador", fields: [criado_por_id], references: [id])
+  respostas RespostaOpiniao[]
+
+  @@map("pesquisas_opiniao")
+}
+
+model RespostaOpiniao {
+  id            String   @id @default(uuid())
+  pesquisa_id   String
+  nome          String
+  secretaria    String?
+  diretoria     String?
+  cargo         String?
+  dados_json    Json
+  token_browser String?
+  created_at    DateTime @default(now())
+
+  pesquisa PesquisaOpiniao @relation(fields: [pesquisa_id], references: [id])
+
+  @@map("respostas_opiniao")
 }
 
 // =============================================================

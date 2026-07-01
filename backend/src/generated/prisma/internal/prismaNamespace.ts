@@ -392,6 +392,8 @@ export const ModelName = {
   FormVersao: 'FormVersao',
   FormAtribuicao: 'FormAtribuicao',
   FormResponse: 'FormResponse',
+  PesquisaOpiniao: 'PesquisaOpiniao',
+  RespostaOpiniao: 'RespostaOpiniao',
   AuditLog: 'AuditLog'
 } as const
 
@@ -408,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "municipio" | "secretaria" | "diretoria" | "user" | "formSchema" | "formVersao" | "formAtribuicao" | "formResponse" | "auditLog"
+    modelProps: "municipio" | "secretaria" | "diretoria" | "user" | "formSchema" | "formVersao" | "formAtribuicao" | "formResponse" | "pesquisaOpiniao" | "respostaOpiniao" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1004,6 +1006,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PesquisaOpiniao: {
+      payload: Prisma.$PesquisaOpiniaoPayload<ExtArgs>
+      fields: Prisma.PesquisaOpiniaoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PesquisaOpiniaoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PesquisaOpiniaoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>
+        }
+        findFirst: {
+          args: Prisma.PesquisaOpiniaoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PesquisaOpiniaoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>
+        }
+        findMany: {
+          args: Prisma.PesquisaOpiniaoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>[]
+        }
+        create: {
+          args: Prisma.PesquisaOpiniaoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>
+        }
+        createMany: {
+          args: Prisma.PesquisaOpiniaoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PesquisaOpiniaoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>[]
+        }
+        delete: {
+          args: Prisma.PesquisaOpiniaoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>
+        }
+        update: {
+          args: Prisma.PesquisaOpiniaoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>
+        }
+        deleteMany: {
+          args: Prisma.PesquisaOpiniaoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PesquisaOpiniaoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PesquisaOpiniaoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>[]
+        }
+        upsert: {
+          args: Prisma.PesquisaOpiniaoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PesquisaOpiniaoPayload>
+        }
+        aggregate: {
+          args: Prisma.PesquisaOpiniaoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePesquisaOpiniao>
+        }
+        groupBy: {
+          args: Prisma.PesquisaOpiniaoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PesquisaOpiniaoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PesquisaOpiniaoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PesquisaOpiniaoCountAggregateOutputType> | number
+        }
+      }
+    }
+    RespostaOpiniao: {
+      payload: Prisma.$RespostaOpiniaoPayload<ExtArgs>
+      fields: Prisma.RespostaOpiniaoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RespostaOpiniaoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RespostaOpiniaoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>
+        }
+        findFirst: {
+          args: Prisma.RespostaOpiniaoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RespostaOpiniaoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>
+        }
+        findMany: {
+          args: Prisma.RespostaOpiniaoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>[]
+        }
+        create: {
+          args: Prisma.RespostaOpiniaoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>
+        }
+        createMany: {
+          args: Prisma.RespostaOpiniaoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RespostaOpiniaoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>[]
+        }
+        delete: {
+          args: Prisma.RespostaOpiniaoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>
+        }
+        update: {
+          args: Prisma.RespostaOpiniaoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>
+        }
+        deleteMany: {
+          args: Prisma.RespostaOpiniaoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RespostaOpiniaoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RespostaOpiniaoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>[]
+        }
+        upsert: {
+          args: Prisma.RespostaOpiniaoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RespostaOpiniaoPayload>
+        }
+        aggregate: {
+          args: Prisma.RespostaOpiniaoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRespostaOpiniao>
+        }
+        groupBy: {
+          args: Prisma.RespostaOpiniaoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RespostaOpiniaoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RespostaOpiniaoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RespostaOpiniaoCountAggregateOutputType> | number
+        }
+      }
+    }
     AuditLog: {
       payload: Prisma.$AuditLogPayload<ExtArgs>
       fields: Prisma.AuditLogFieldRefs
@@ -1244,6 +1394,37 @@ export const FormResponseScalarFieldEnum = {
 export type FormResponseScalarFieldEnum = (typeof FormResponseScalarFieldEnum)[keyof typeof FormResponseScalarFieldEnum]
 
 
+export const PesquisaOpiniaoScalarFieldEnum = {
+  id: 'id',
+  titulo: 'titulo',
+  descricao: 'descricao',
+  schema_json: 'schema_json',
+  status: 'status',
+  criado_por_id: 'criado_por_id',
+  publicado_em: 'publicado_em',
+  encerrado_em: 'encerrado_em',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PesquisaOpiniaoScalarFieldEnum = (typeof PesquisaOpiniaoScalarFieldEnum)[keyof typeof PesquisaOpiniaoScalarFieldEnum]
+
+
+export const RespostaOpiniaoScalarFieldEnum = {
+  id: 'id',
+  pesquisa_id: 'pesquisa_id',
+  nome: 'nome',
+  secretaria: 'secretaria',
+  diretoria: 'diretoria',
+  cargo: 'cargo',
+  dados_json: 'dados_json',
+  token_browser: 'token_browser',
+  created_at: 'created_at'
+} as const
+
+export type RespostaOpiniaoScalarFieldEnum = (typeof RespostaOpiniaoScalarFieldEnum)[keyof typeof RespostaOpiniaoScalarFieldEnum]
+
+
 export const AuditLogScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -1433,6 +1614,20 @@ export type ListEnumResponseStatusFieldRefInput<$PrismaModel> = FieldRefInputTyp
 
 
 /**
+ * Reference to a field of type 'PesquisaStatus'
+ */
+export type EnumPesquisaStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PesquisaStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PesquisaStatus[]'
+ */
+export type ListEnumPesquisaStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PesquisaStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'AuditAction'
  */
 export type EnumAuditActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditAction'>
@@ -1577,6 +1772,8 @@ export type GlobalOmitConfig = {
   formVersao?: Prisma.FormVersaoOmit
   formAtribuicao?: Prisma.FormAtribuicaoOmit
   formResponse?: Prisma.FormResponseOmit
+  pesquisaOpiniao?: Prisma.PesquisaOpiniaoOmit
+  respostaOpiniao?: Prisma.RespostaOpiniaoOmit
   auditLog?: Prisma.AuditLogOmit
 }
 

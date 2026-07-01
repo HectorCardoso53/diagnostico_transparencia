@@ -59,6 +59,8 @@ export const ModelName = {
   FormVersao: 'FormVersao',
   FormAtribuicao: 'FormAtribuicao',
   FormResponse: 'FormResponse',
+  PesquisaOpiniao: 'PesquisaOpiniao',
+  RespostaOpiniao: 'RespostaOpiniao',
   AuditLog: 'AuditLog'
 } as const
 
@@ -203,6 +205,37 @@ export const FormResponseScalarFieldEnum = {
 } as const
 
 export type FormResponseScalarFieldEnum = (typeof FormResponseScalarFieldEnum)[keyof typeof FormResponseScalarFieldEnum]
+
+
+export const PesquisaOpiniaoScalarFieldEnum = {
+  id: 'id',
+  titulo: 'titulo',
+  descricao: 'descricao',
+  schema_json: 'schema_json',
+  status: 'status',
+  criado_por_id: 'criado_por_id',
+  publicado_em: 'publicado_em',
+  encerrado_em: 'encerrado_em',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PesquisaOpiniaoScalarFieldEnum = (typeof PesquisaOpiniaoScalarFieldEnum)[keyof typeof PesquisaOpiniaoScalarFieldEnum]
+
+
+export const RespostaOpiniaoScalarFieldEnum = {
+  id: 'id',
+  pesquisa_id: 'pesquisa_id',
+  nome: 'nome',
+  secretaria: 'secretaria',
+  diretoria: 'diretoria',
+  cargo: 'cargo',
+  dados_json: 'dados_json',
+  token_browser: 'token_browser',
+  created_at: 'created_at'
+} as const
+
+export type RespostaOpiniaoScalarFieldEnum = (typeof RespostaOpiniaoScalarFieldEnum)[keyof typeof RespostaOpiniaoScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {

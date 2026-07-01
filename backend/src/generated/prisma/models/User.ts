@@ -242,6 +242,7 @@ export type UserWhereInput = {
   diretoria?: Prisma.XOR<Prisma.DiretoriaNullableScalarRelationFilter, Prisma.DiretoriaWhereInput> | null
   formularios?: Prisma.FormSchemaListRelationFilter
   respostas?: Prisma.FormResponseListRelationFilter
+  pesquisas?: Prisma.PesquisaOpiniaoListRelationFilter
   audit_logs?: Prisma.AuditLogListRelationFilter
 }
 
@@ -262,6 +263,7 @@ export type UserOrderByWithRelationInput = {
   diretoria?: Prisma.DiretoriaOrderByWithRelationInput
   formularios?: Prisma.FormSchemaOrderByRelationAggregateInput
   respostas?: Prisma.FormResponseOrderByRelationAggregateInput
+  pesquisas?: Prisma.PesquisaOpiniaoOrderByRelationAggregateInput
   audit_logs?: Prisma.AuditLogOrderByRelationAggregateInput
 }
 
@@ -285,6 +287,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   diretoria?: Prisma.XOR<Prisma.DiretoriaNullableScalarRelationFilter, Prisma.DiretoriaWhereInput> | null
   formularios?: Prisma.FormSchemaListRelationFilter
   respostas?: Prisma.FormResponseListRelationFilter
+  pesquisas?: Prisma.PesquisaOpiniaoListRelationFilter
   audit_logs?: Prisma.AuditLogListRelationFilter
 }, "id" | "email">
 
@@ -339,6 +342,7 @@ export type UserCreateInput = {
   diretoria?: Prisma.DiretoriaCreateNestedOneWithoutUsuariosInput
   formularios?: Prisma.FormSchemaCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUsuarioInput
 }
 
@@ -357,6 +361,7 @@ export type UserUncheckedCreateInput = {
   updated_at?: Date | string
   formularios?: Prisma.FormSchemaUncheckedCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseUncheckedCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
@@ -375,6 +380,7 @@ export type UserUpdateInput = {
   diretoria?: Prisma.DiretoriaUpdateOneWithoutUsuariosNestedInput
   formularios?: Prisma.FormSchemaUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -393,6 +399,7 @@ export type UserUncheckedUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   formularios?: Prisma.FormSchemaUncheckedUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUncheckedUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -624,6 +631,20 @@ export type UserUpdateOneRequiredWithoutRespostasNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRespostasInput, Prisma.UserUpdateWithoutRespostasInput>, Prisma.UserUncheckedUpdateWithoutRespostasInput>
 }
 
+export type UserCreateNestedOneWithoutPesquisasInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPesquisasInput, Prisma.UserUncheckedCreateWithoutPesquisasInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPesquisasInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPesquisasNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPesquisasInput, Prisma.UserUncheckedCreateWithoutPesquisasInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPesquisasInput
+  upsert?: Prisma.UserUpsertWithoutPesquisasInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPesquisasInput, Prisma.UserUpdateWithoutPesquisasInput>, Prisma.UserUncheckedUpdateWithoutPesquisasInput>
+}
+
 export type UserCreateNestedOneWithoutAudit_logsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAudit_logsInput
@@ -654,6 +675,7 @@ export type UserCreateWithoutSecretariaInput = {
   diretoria?: Prisma.DiretoriaCreateNestedOneWithoutUsuariosInput
   formularios?: Prisma.FormSchemaCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUsuarioInput
 }
 
@@ -671,6 +693,7 @@ export type UserUncheckedCreateWithoutSecretariaInput = {
   updated_at?: Date | string
   formularios?: Prisma.FormSchemaUncheckedCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseUncheckedCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
@@ -732,6 +755,7 @@ export type UserCreateWithoutDiretoriaInput = {
   secretaria?: Prisma.SecretariaCreateNestedOneWithoutUsuariosInput
   formularios?: Prisma.FormSchemaCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUsuarioInput
 }
 
@@ -749,6 +773,7 @@ export type UserUncheckedCreateWithoutDiretoriaInput = {
   updated_at?: Date | string
   formularios?: Prisma.FormSchemaUncheckedCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseUncheckedCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
@@ -792,6 +817,7 @@ export type UserCreateWithoutFormulariosInput = {
   secretaria?: Prisma.SecretariaCreateNestedOneWithoutUsuariosInput
   diretoria?: Prisma.DiretoriaCreateNestedOneWithoutUsuariosInput
   respostas?: Prisma.FormResponseCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUsuarioInput
 }
 
@@ -809,6 +835,7 @@ export type UserUncheckedCreateWithoutFormulariosInput = {
   created_at?: Date | string
   updated_at?: Date | string
   respostas?: Prisma.FormResponseUncheckedCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
@@ -842,6 +869,7 @@ export type UserUpdateWithoutFormulariosInput = {
   secretaria?: Prisma.SecretariaUpdateOneWithoutUsuariosNestedInput
   diretoria?: Prisma.DiretoriaUpdateOneWithoutUsuariosNestedInput
   respostas?: Prisma.FormResponseUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -859,6 +887,7 @@ export type UserUncheckedUpdateWithoutFormulariosInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   respostas?: Prisma.FormResponseUncheckedUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -876,6 +905,7 @@ export type UserCreateWithoutRespostasInput = {
   secretaria?: Prisma.SecretariaCreateNestedOneWithoutUsuariosInput
   diretoria?: Prisma.DiretoriaCreateNestedOneWithoutUsuariosInput
   formularios?: Prisma.FormSchemaCreateNestedManyWithoutCriado_porInput
+  pesquisas?: Prisma.PesquisaOpiniaoCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUsuarioInput
 }
 
@@ -893,6 +923,7 @@ export type UserUncheckedCreateWithoutRespostasInput = {
   created_at?: Date | string
   updated_at?: Date | string
   formularios?: Prisma.FormSchemaUncheckedCreateNestedManyWithoutCriado_porInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedCreateNestedManyWithoutCriadorInput
   audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
@@ -926,6 +957,7 @@ export type UserUpdateWithoutRespostasInput = {
   secretaria?: Prisma.SecretariaUpdateOneWithoutUsuariosNestedInput
   diretoria?: Prisma.DiretoriaUpdateOneWithoutUsuariosNestedInput
   formularios?: Prisma.FormSchemaUpdateManyWithoutCriado_porNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -943,6 +975,95 @@ export type UserUncheckedUpdateWithoutRespostasInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   formularios?: Prisma.FormSchemaUncheckedUpdateManyWithoutCriado_porNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedUpdateManyWithoutCriadorNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UserCreateWithoutPesquisasInput = {
+  id?: string
+  nome: string
+  email: string
+  senha_hash: string
+  role?: $Enums.Role
+  ativo?: boolean
+  ultimo_login?: Date | string | null
+  refresh_token?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  secretaria?: Prisma.SecretariaCreateNestedOneWithoutUsuariosInput
+  diretoria?: Prisma.DiretoriaCreateNestedOneWithoutUsuariosInput
+  formularios?: Prisma.FormSchemaCreateNestedManyWithoutCriado_porInput
+  respostas?: Prisma.FormResponseCreateNestedManyWithoutUsuarioInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutUsuarioInput
+}
+
+export type UserUncheckedCreateWithoutPesquisasInput = {
+  id?: string
+  nome: string
+  email: string
+  senha_hash: string
+  role?: $Enums.Role
+  secretaria_id?: string | null
+  diretoria_id?: string | null
+  ativo?: boolean
+  ultimo_login?: Date | string | null
+  refresh_token?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  formularios?: Prisma.FormSchemaUncheckedCreateNestedManyWithoutCriado_porInput
+  respostas?: Prisma.FormResponseUncheckedCreateNestedManyWithoutUsuarioInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUsuarioInput
+}
+
+export type UserCreateOrConnectWithoutPesquisasInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPesquisasInput, Prisma.UserUncheckedCreateWithoutPesquisasInput>
+}
+
+export type UserUpsertWithoutPesquisasInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPesquisasInput, Prisma.UserUncheckedUpdateWithoutPesquisasInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPesquisasInput, Prisma.UserUncheckedCreateWithoutPesquisasInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPesquisasInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPesquisasInput, Prisma.UserUncheckedUpdateWithoutPesquisasInput>
+}
+
+export type UserUpdateWithoutPesquisasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimo_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  secretaria?: Prisma.SecretariaUpdateOneWithoutUsuariosNestedInput
+  diretoria?: Prisma.DiretoriaUpdateOneWithoutUsuariosNestedInput
+  formularios?: Prisma.FormSchemaUpdateManyWithoutCriado_porNestedInput
+  respostas?: Prisma.FormResponseUpdateManyWithoutUsuarioNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPesquisasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  senha_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  secretaria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  diretoria_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ativo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimo_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  formularios?: Prisma.FormSchemaUncheckedUpdateManyWithoutCriado_porNestedInput
+  respostas?: Prisma.FormResponseUncheckedUpdateManyWithoutUsuarioNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -961,6 +1082,7 @@ export type UserCreateWithoutAudit_logsInput = {
   diretoria?: Prisma.DiretoriaCreateNestedOneWithoutUsuariosInput
   formularios?: Prisma.FormSchemaCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoCreateNestedManyWithoutCriadorInput
 }
 
 export type UserUncheckedCreateWithoutAudit_logsInput = {
@@ -978,6 +1100,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   updated_at?: Date | string
   formularios?: Prisma.FormSchemaUncheckedCreateNestedManyWithoutCriado_porInput
   respostas?: Prisma.FormResponseUncheckedCreateNestedManyWithoutUsuarioInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedCreateNestedManyWithoutCriadorInput
 }
 
 export type UserCreateOrConnectWithoutAudit_logsInput = {
@@ -1011,6 +1134,7 @@ export type UserUpdateWithoutAudit_logsInput = {
   diretoria?: Prisma.DiretoriaUpdateOneWithoutUsuariosNestedInput
   formularios?: Prisma.FormSchemaUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUpdateManyWithoutCriadorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAudit_logsInput = {
@@ -1028,6 +1152,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   formularios?: Prisma.FormSchemaUncheckedUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUncheckedUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedUpdateManyWithoutCriadorNestedInput
 }
 
 export type UserCreateManySecretariaInput = {
@@ -1058,6 +1183,7 @@ export type UserUpdateWithoutSecretariaInput = {
   diretoria?: Prisma.DiretoriaUpdateOneWithoutUsuariosNestedInput
   formularios?: Prisma.FormSchemaUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -1075,6 +1201,7 @@ export type UserUncheckedUpdateWithoutSecretariaInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   formularios?: Prisma.FormSchemaUncheckedUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUncheckedUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -1120,6 +1247,7 @@ export type UserUpdateWithoutDiretoriaInput = {
   secretaria?: Prisma.SecretariaUpdateOneWithoutUsuariosNestedInput
   formularios?: Prisma.FormSchemaUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -1137,6 +1265,7 @@ export type UserUncheckedUpdateWithoutDiretoriaInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   formularios?: Prisma.FormSchemaUncheckedUpdateManyWithoutCriado_porNestedInput
   respostas?: Prisma.FormResponseUncheckedUpdateManyWithoutUsuarioNestedInput
+  pesquisas?: Prisma.PesquisaOpiniaoUncheckedUpdateManyWithoutCriadorNestedInput
   audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
@@ -1162,12 +1291,14 @@ export type UserUncheckedUpdateManyWithoutDiretoriaInput = {
 export type UserCountOutputType = {
   formularios: number
   respostas: number
+  pesquisas: number
   audit_logs: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   formularios?: boolean | UserCountOutputTypeCountFormulariosArgs
   respostas?: boolean | UserCountOutputTypeCountRespostasArgs
+  pesquisas?: boolean | UserCountOutputTypeCountPesquisasArgs
   audit_logs?: boolean | UserCountOutputTypeCountAudit_logsArgs
 }
 
@@ -1198,6 +1329,13 @@ export type UserCountOutputTypeCountRespostasArgs<ExtArgs extends runtime.Types.
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountPesquisasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PesquisaOpiniaoWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountAudit_logsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AuditLogWhereInput
 }
@@ -1220,6 +1358,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   diretoria?: boolean | Prisma.User$diretoriaArgs<ExtArgs>
   formularios?: boolean | Prisma.User$formulariosArgs<ExtArgs>
   respostas?: boolean | Prisma.User$respostasArgs<ExtArgs>
+  pesquisas?: boolean | Prisma.User$pesquisasArgs<ExtArgs>
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -1279,6 +1418,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   diretoria?: boolean | Prisma.User$diretoriaArgs<ExtArgs>
   formularios?: boolean | Prisma.User$formulariosArgs<ExtArgs>
   respostas?: boolean | Prisma.User$respostasArgs<ExtArgs>
+  pesquisas?: boolean | Prisma.User$pesquisasArgs<ExtArgs>
   audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1298,6 +1438,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     diretoria: Prisma.$DiretoriaPayload<ExtArgs> | null
     formularios: Prisma.$FormSchemaPayload<ExtArgs>[]
     respostas: Prisma.$FormResponsePayload<ExtArgs>[]
+    pesquisas: Prisma.$PesquisaOpiniaoPayload<ExtArgs>[]
     audit_logs: Prisma.$AuditLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1711,6 +1852,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   diretoria<T extends Prisma.User$diretoriaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$diretoriaArgs<ExtArgs>>): Prisma.Prisma__DiretoriaClient<runtime.Types.Result.GetResult<Prisma.$DiretoriaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   formularios<T extends Prisma.User$formulariosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$formulariosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FormSchemaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   respostas<T extends Prisma.User$respostasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$respostasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FormResponsePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pesquisas<T extends Prisma.User$pesquisasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pesquisasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PesquisaOpiniaoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   audit_logs<T extends Prisma.User$audit_logsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2237,6 +2379,30 @@ export type User$respostasArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.FormResponseScalarFieldEnum | Prisma.FormResponseScalarFieldEnum[]
+}
+
+/**
+ * User.pesquisas
+ */
+export type User$pesquisasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PesquisaOpiniao
+   */
+  select?: Prisma.PesquisaOpiniaoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PesquisaOpiniao
+   */
+  omit?: Prisma.PesquisaOpiniaoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PesquisaOpiniaoInclude<ExtArgs> | null
+  where?: Prisma.PesquisaOpiniaoWhereInput
+  orderBy?: Prisma.PesquisaOpiniaoOrderByWithRelationInput | Prisma.PesquisaOpiniaoOrderByWithRelationInput[]
+  cursor?: Prisma.PesquisaOpiniaoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PesquisaOpiniaoScalarFieldEnum | Prisma.PesquisaOpiniaoScalarFieldEnum[]
 }
 
 /**

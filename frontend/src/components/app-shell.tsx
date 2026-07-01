@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import {
   Building2, FolderOpen, LayoutDashboard, LogOut,
-  ScrollText, Settings, Users,
+  ScrollText, Settings, Users, BarChart2,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,7 @@ const adminNav = [
   { href: '/usuarios', label: 'Usuários', icon: Users },
   { href: '/formularios', label: 'Formulários', icon: ScrollText },
   { href: '/respostas', label: 'Respostas', icon: Settings },
+  { href: '/pesquisas', label: 'Pesquisas de Opinião', icon: BarChart2 },
 ]
 
 const secretarioNav = [
