@@ -2,12 +2,17 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart2, Users } from 'lucide-react'
+import { ArrowLeft, Users, MessageSquare, CalendarDays, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  LineChart, Line, CartesianGrid, PieChart, Pie, Legend,
+} from 'recharts'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type TipoCampo = 'texto' | 'paragrafo' | 'multipla_escolha' | 'caixa_selecao' | 'lista_suspensa' | 'numero' | 'data' | 'moeda'
 
@@ -25,6 +30,7 @@ interface Pesquisa {
   descricao: string | null
   status: 'RASCUNHO' | 'PUBLICADA' | 'ENCERRADA'
   schema_json: { campos?: Campo[] } | null
+  publicado_em: string | null
   _count: { respostas: number }
 }
 
@@ -40,26 +46,46 @@ interface Resposta {
 
 const HAS_OPTIONS: TipoCampo[] = ['multipla_escolha', 'caixa_selecao', 'lista_suspensa']
 
+const CHART_COLORS = ['#1a3a5c', '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#9333ea', '#ea580c', '#0891b2']
+
 function buildAggregates(campos: Campo[], respostas: Resposta[]) {
   return campos
     .filter(c => HAS_OPTIONS.includes(c.tipo))
     .map(c => {
       const counts: Record<string, number> = {}
       for (const op of c.opcoes) counts[op] = 0
-
       for (const r of respostas) {
         const v = r.dados_json[c.id]
         if (!v) continue
-        if (Array.isArray(v)) {
-          for (const item of v) { if (item in counts) counts[item]++ }
-        } else {
-          if (v in counts) counts[v]++
-        }
+        if (Array.isArray(v)) { for (const item of v) { if (item in counts) counts[item]++ } }
+        else { if (v in counts) counts[v]++ }
       }
-
       const total = Object.values(counts).reduce((s, n) => s + n, 0)
-      return { campo: c, counts, total }
+      const data = c.opcoes.map(op => ({ name: op, total: counts[op] ?? 0 }))
+      return { campo: c, data, total }
     })
+}
+
+function buildTrend(respostas: Resposta[]) {
+  const map: Record<string, number> = {}
+  for (const r of respostas) {
+    const day = r.created_at.slice(0, 10)
+    map[day] = (map[day] ?? 0) + 1
+  }
+  return Object.entries(map)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([data, total]) => ({ data: data.slice(5).replace('-', '/'), total }))
+}
+
+function buildBySecretaria(respostas: Resposta[]) {
+  const map: Record<string, number> = {}
+  for (const r of respostas) {
+    const key = r.secretaria?.trim() || 'Não informado'
+    map[key] = (map[key] ?? 0) + 1
+  }
+  return Object.entries(map)
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, value]) => ({ name: name.length > 18 ? name.slice(0, 18) + '…' : name, value }))
 }
 
 export default function ResultadosPage() {
@@ -68,7 +94,7 @@ export default function ResultadosPage() {
   const [pesquisa, setPesquisa] = useState<Pesquisa | null>(null)
   const [respostas, setRespostas] = useState<Resposta[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'resumo' | 'individual'>('resumo')
+  const [tab, setTab] = useState<'visao' | 'perguntas' | 'individual'>('visao')
 
   const load = useCallback(async () => {
     try {
@@ -95,9 +121,13 @@ export default function ResultadosPage() {
   const campos = pesquisa.schema_json?.campos ?? []
   const textCampos = campos.filter(c => !HAS_OPTIONS.includes(c.tipo))
   const aggregates = buildAggregates(campos, respostas)
+  const trend = buildTrend(respostas)
+  const bySecretaria = buildBySecretaria(respostas)
+  const secretariasUnicas = bySecretaria.filter(s => s.name !== 'Não informado').length
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => router.push('/pesquisas')}>
@@ -110,111 +140,222 @@ export default function ResultadosPage() {
               {pesquisa.status === 'PUBLICADA' ? 'Publicada' : pesquisa.status === 'ENCERRADA' ? 'Encerrada' : 'Rascunho'}
             </Badge>
           </div>
-          {pesquisa.descricao && (
-            <p className="text-sm text-muted-foreground mt-0.5">{pesquisa.descricao}</p>
-          )}
+          {pesquisa.descricao && <p className="text-sm text-muted-foreground mt-0.5">{pesquisa.descricao}</p>}
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div className="rounded-lg border bg-background p-4 text-center">
-          <Users className="h-6 w-6 mx-auto mb-1 text-[#1a3a5c]" />
-          <p className="text-2xl font-bold">{respostas.length}</p>
-          <p className="text-xs text-muted-foreground">Resposta{respostas.length !== 1 ? 's' : ''}</p>
-        </div>
-        <div className="rounded-lg border bg-background p-4 text-center">
-          <BarChart2 className="h-6 w-6 mx-auto mb-1 text-[#1a3a5c]" />
-          <p className="text-2xl font-bold">{campos.length}</p>
-          <p className="text-xs text-muted-foreground">Pergunta{campos.length !== 1 ? 's' : ''}</p>
-        </div>
-        <div className="rounded-lg border bg-background p-4 text-center col-span-2 sm:col-span-1">
-          <p className="text-2xl font-bold">{aggregates.length}</p>
-          <p className="text-xs text-muted-foreground">Com gráfico</p>
-        </div>
+      {/* Cards de métricas */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-4">
+            <CardTitle className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />Respostas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <p className="text-3xl font-bold text-[#1a3a5c]">{respostas.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-4">
+            <CardTitle className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <MessageSquare className="h-3.5 w-3.5" />Perguntas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <p className="text-3xl font-bold text-[#1a3a5c]">{campos.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-4">
+            <CardTitle className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <Building2 className="h-3.5 w-3.5" />Secretarias
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <p className="text-3xl font-bold text-[#1a3a5c]">{secretariasUnicas}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-1 pt-4 px-4">
+            <CardTitle className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <CalendarDays className="h-3.5 w-3.5" />Período
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <p className="text-sm font-semibold text-[#1a3a5c]">
+              {pesquisa.publicado_em ? formatDate(pesquisa.publicado_em) : '—'}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b">
-        {(['resumo', 'individual'] as const).map(t => (
+        {([
+          { key: 'visao', label: 'Visão Geral' },
+          { key: 'perguntas', label: 'Por Pergunta' },
+          { key: 'individual', label: 'Respostas individuais' },
+        ] as const).map(t => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={t.key}
+            onClick={() => setTab(t.key)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === t
+              tab === t.key
                 ? 'border-[#1a3a5c] text-[#1a3a5c]'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            {t === 'resumo' ? 'Resumo por pergunta' : 'Respostas individuais'}
+            {t.label}
           </button>
         ))}
       </div>
 
-      {/* Resumo */}
-      {tab === 'resumo' && (
+      {/* ── Visão Geral ─────────────────────────────────────────────────── */}
+      {tab === 'visao' && (
         <div className="space-y-6">
-          {aggregates.length === 0 && textCampos.length === 0 && (
-            <p className="text-center text-muted-foreground text-sm py-8">
-              Nenhuma pergunta com opções para agregar.
-            </p>
+          {respostas.length === 0 && (
+            <p className="text-center text-muted-foreground text-sm py-12">Nenhuma resposta recebida ainda.</p>
           )}
 
-          {aggregates.map(({ campo, counts, total }) => (
-            <div key={campo.id} className="rounded-lg border bg-background p-5 space-y-3">
-              <p className="font-medium text-sm">{campo.label}</p>
-              <p className="text-xs text-muted-foreground">{total} resposta{total !== 1 ? 's' : ''}</p>
-              <div className="space-y-2">
-                {campo.opcoes.map(op => {
-                  const count = counts[op] ?? 0
-                  const pct = total > 0 ? Math.round((count / total) * 100) : 0
-                  return (
-                    <div key={op} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-foreground">{op}</span>
-                        <span className="text-muted-foreground font-medium">{count} ({pct}%)</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full bg-[#1a3a5c] rounded-full transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
+          {/* Tendência de respostas */}
+          {trend.length >= 2 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Respostas ao longo do tempo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={trend} margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="data" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v: number) => [v, 'Respostas']} />
+                    <Line type="monotone" dataKey="total" stroke="#1a3a5c" strokeWidth={2} dot={{ r: 4, fill: '#1a3a5c' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
 
-          {textCampos.length > 0 && (
-            <div className="rounded-lg border bg-background p-5 space-y-4">
-              <p className="font-medium text-sm">Respostas abertas</p>
-              {textCampos.map(c => {
-                const resps = respostas.map(r => r.dados_json[c.id]).filter(Boolean) as string[]
-                return (
-                  <div key={c.id} className="space-y-1.5">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{c.label}</p>
-                    {resps.length === 0
-                      ? <p className="text-xs text-muted-foreground italic">Sem respostas</p>
-                      : (
-                        <ul className="space-y-1">
-                          {resps.map((v, i) => (
-                            <li key={i} className="text-xs border-l-2 border-[#1a3a5c]/30 pl-3 py-0.5 text-foreground">
-                              {v}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                  </div>
-                )
-              })}
+          {/* Distribuição por secretaria */}
+          {bySecretaria.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Respostas por secretaria</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={Math.max(160, bySecretaria.length * 40)}>
+                    <BarChart layout="vertical" data={bySecretaria} margin={{ left: 8, right: 48, top: 4, bottom: 4 }}>
+                      <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
+                      <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v: number) => [v, 'Respostas']} />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                        {bySecretaria.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {bySecretaria.length >= 2 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-semibold">Proporção por secretaria</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={bySecretaria}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={75}
+                          label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}
+                          labelLine={false}
+                          fontSize={10}
+                        >
+                          {bySecretaria.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={{ fontSize: 12 }} formatter={(v: number) => [v, 'Respostas']} />
+                        <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* Individual */}
+      {/* ── Por Pergunta ─────────────────────────────────────────────────── */}
+      {tab === 'perguntas' && (
+        <div className="space-y-6">
+          {aggregates.length === 0 && textCampos.length === 0 && (
+            <p className="text-center text-muted-foreground text-sm py-8">Nenhuma pergunta para exibir.</p>
+          )}
+
+          {aggregates.map(({ campo, data, total }) => (
+            <Card key={campo.id}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold leading-snug">{campo.label}</CardTitle>
+                <p className="text-xs text-muted-foreground">{total} resposta{total !== 1 ? 's' : ''}</p>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={Math.max(120, data.length * 44)}>
+                  <BarChart layout="vertical" data={data} margin={{ left: 8, right: 56, top: 4, bottom: 4 }}>
+                    <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{ fontSize: 12 }}
+                      formatter={(v: number) => [
+                        `${v} (${total > 0 ? Math.round((v / total) * 100) : 0}%)`,
+                        'Respostas',
+                      ]}
+                    />
+                    <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                      {data.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          ))}
+
+          {textCampos.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Respostas abertas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {textCampos.map(c => {
+                  const resps = respostas.map(r => r.dados_json[c.id]).filter(Boolean) as string[]
+                  return (
+                    <div key={c.id} className="space-y-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{c.label}</p>
+                      {resps.length === 0
+                        ? <p className="text-xs text-muted-foreground italic">Sem respostas</p>
+                        : (
+                          <ul className="space-y-1">
+                            {resps.map((v, i) => (
+                              <li key={i} className="text-xs border-l-2 border-[#1a3a5c]/30 pl-3 py-0.5 text-foreground">{v}</li>
+                            ))}
+                          </ul>
+                        )}
+                    </div>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ── Respostas individuais ─────────────────────────────────────────── */}
       {tab === 'individual' && (
         <div className="space-y-3">
           {respostas.length === 0 && (
@@ -242,9 +383,7 @@ export default function ResultadosPage() {
                     return (
                       <div key={c.id} className="text-xs">
                         <p className="text-muted-foreground font-medium">{c.label}</p>
-                        <p className="text-foreground mt-0.5">
-                          {Array.isArray(v) ? v.join(', ') : v}
-                        </p>
+                        <p className="text-foreground mt-0.5">{Array.isArray(v) ? v.join(', ') : v}</p>
                       </div>
                     )
                   })}
