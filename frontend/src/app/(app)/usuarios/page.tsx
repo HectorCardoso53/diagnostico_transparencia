@@ -258,7 +258,7 @@ export default function UsuariosPage() {
 
             {/* Role */}
             <div className="space-y-1.5">
-              <Label>Perfil *</Label>
+              <Label>Cargo ou Função *</Label>
               <Select value={form.role} onValueChange={(v) => { setForm((f) => ({ ...f, role: v, diretoria_id: NONE })); setFormsDiretoria([]) }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>

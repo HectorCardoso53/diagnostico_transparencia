@@ -291,7 +291,7 @@ export default function LoginPage() {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Perfil <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium text-gray-700">Cargo ou Função <span className="text-red-500">*</span></label>
                 <Select value={role} onValueChange={handleRoleChange}>
                   <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
                   <SelectContent>
