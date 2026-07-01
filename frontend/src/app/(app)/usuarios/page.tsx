@@ -31,7 +31,7 @@ const ROLES = ['ADMIN', 'SECRETARIO', 'DIRETOR', 'OPERADOR']
 const NONE  = '__none__'
 
 const ROLE_LABEL: Record<string, string> = {
-  ADMIN: 'Admin', SECRETARIO: 'Secretário', DIRETOR: 'Diretor', OPERADOR: 'Operador', SUPER_ADMIN: 'Super Admin',
+  ADMIN: 'Admin', SECRETARIO: 'Secretário', DIRETOR: 'Diretor', OPERADOR: 'Servidor', SUPER_ADMIN: 'Super Admin',
 }
 const ROLE_COLOR: Record<string, 'default' | 'secondary' | 'success' | 'outline'> = {
   SUPER_ADMIN: 'default', ADMIN: 'default', SECRETARIO: 'success', DIRETOR: 'secondary', OPERADOR: 'outline',

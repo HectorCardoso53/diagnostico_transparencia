@@ -14,7 +14,7 @@ interface Diretoria  { id: string; nome: string; sigla: string; secretaria_id: s
 
 const NONE = '__none__'
 const ROLES = ['SECRETARIO', 'DIRETOR', 'OPERADOR']
-const ROLE_LABEL: Record<string, string> = { SECRETARIO: 'Secretário', DIRETOR: 'Diretor', OPERADOR: 'Operador' }
+const ROLE_LABEL: Record<string, string> = { SECRETARIO: 'Secretário', DIRETOR: 'Diretor', OPERADOR: 'Servidor' }
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost/api'
 
 export default function LoginPage() {
