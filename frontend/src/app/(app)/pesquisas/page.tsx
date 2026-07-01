@@ -93,7 +93,7 @@ export default function PesquisasPage() {
   }, [])
 
   useEffect(() => {
-    if (!baseFormId) { setBaseSchema(null); return }
+    if (!baseFormId || baseFormId === 'none') { setBaseSchema(null); return }
     setLoadingSchema(true)
     api.get<FormularioDetalhado>(`/formularios/${baseFormId}`)
       .then(f => setBaseSchema(f.schema_json))
@@ -260,7 +260,7 @@ export default function PesquisasPage() {
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis type="category" dataKey="nome" width={160} tick={{ fontSize: 12 }} />
                 <Tooltip
-                  formatter={(v: number) => [v, 'Respostas']}
+                  formatter={(v) => [v, 'Respostas']}
                   contentStyle={{ fontSize: 12 }}
                 />
                 <Bar dataKey="respostas" radius={[0, 4, 4, 0]}>
@@ -367,7 +367,7 @@ export default function PesquisasPage() {
                   <SelectValue placeholder="Criar do zero..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Criar do zero</SelectItem>
+                  <SelectItem value="none">Criar do zero</SelectItem>
                   {formularios.map(f => (
                     <SelectItem key={f.id} value={f.id}>
                       {f.diretoria?.secretaria?.sigla ? `[${f.diretoria.secretaria.sigla}] ` : ''}{f.titulo}
@@ -380,10 +380,10 @@ export default function PesquisasPage() {
                   <Loader2 className="h-3 w-3 animate-spin" />Carregando perguntas...
                 </p>
               )}
-              {baseFormId && !loadingSchema && camposImportados > 0 && (
+              {baseFormId && baseFormId !== 'none' && !loadingSchema && camposImportados > 0 && (
                 <p className="text-xs text-green-600 font-medium">✓ {camposImportados} pergunta{camposImportados !== 1 ? 's' : ''} serão importadas</p>
               )}
-              {baseFormId && !loadingSchema && camposImportados === 0 && (
+              {baseFormId && baseFormId !== 'none' && !loadingSchema && camposImportados === 0 && (
                 <p className="text-xs text-amber-600">Este formulário não possui perguntas ainda.</p>
               )}
             </div>
