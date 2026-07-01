@@ -150,7 +150,7 @@ export class RespostasService {
   ) {
     const r = await this.assertExists(id);
 
-    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN];
+    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO];
     if (!adminRoles.includes(user.role) && r.user_id !== user.id)
       throw new ForbiddenException('Você não é o autor desta resposta');
     if (r.status !== ResponseStatus.RASCUNHO)
@@ -167,7 +167,7 @@ export class RespostasService {
   async enviar(id: string, user: CurrentUser) {
     const r = await this.assertExists(id);
 
-    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN];
+    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO];
     if (!adminRoles.includes(user.role) && r.user_id !== user.id)
       throw new ForbiddenException('Você não é o autor desta resposta');
     if (r.status !== ResponseStatus.RASCUNHO)
