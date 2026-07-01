@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Plus, Trash2, BarChart2, Eye, Copy, CheckCheck,
-  Clock, CheckCircle2, XCircle,
+  Clock, CheckCircle2, XCircle, Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
@@ -19,6 +19,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
 interface Pesquisa {
   id: string
@@ -30,6 +33,16 @@ interface Pesquisa {
   created_at: string
   criador: { nome: string } | null
   _count: { respostas: number }
+}
+
+interface FormularioSimples {
+  id: string
+  titulo: string
+  diretoria: { nome: string; secretaria: { sigla: string } | null } | null
+}
+
+interface FormularioDetalhado {
+  schema_json: { campos?: unknown[] } | null
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -55,6 +68,12 @@ export default function PesquisasPage() {
   const [deleting, setDeleting] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
+  // Importar de formulário
+  const [formularios, setFormularios] = useState<FormularioSimples[]>([])
+  const [baseFormId, setBaseFormId]   = useState('')
+  const [baseSchema, setBaseSchema]   = useState<{ campos?: unknown[] } | null>(null)
+  const [loadingSchema, setLoadingSchema] = useState(false)
+
   const load = useCallback(() => {
     api.get<Pesquisa[]>('/pesquisas')
       .then(setItems)
@@ -63,6 +82,33 @@ export default function PesquisasPage() {
 
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    api.get<FormularioSimples[]>('/formularios')
+      .then(setFormularios)
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (!baseFormId) { setBaseSchema(null); return }
+    setLoadingSchema(true)
+    api.get<FormularioDetalhado>(`/formularios/${baseFormId}`)
+      .then(f => setBaseSchema(f.schema_json))
+      .catch(() => toast.error('Erro ao carregar perguntas do formulário'))
+      .finally(() => setLoadingSchema(false))
+  }, [baseFormId])
+
+  function resetDialog() {
+    setTitulo('')
+    setDescricao('')
+    setBaseFormId('')
+    setBaseSchema(null)
+  }
+
+  function handleOpenChange(v: boolean) {
+    setOpen(v)
+    if (!v) resetDialog()
+  }
+
   async function create() {
     if (!titulo.trim()) return
     setSaving(true)
@@ -70,11 +116,11 @@ export default function PesquisasPage() {
       const nova = await api.post<{ id: string }>('/pesquisas', {
         titulo: titulo.trim(),
         descricao: descricao.trim() || undefined,
+        ...(baseSchema && { schema_json: baseSchema }),
       })
       toast.success('Pesquisa criada')
       setOpen(false)
-      setTitulo('')
-      setDescricao('')
+      resetDialog()
       router.push(`/pesquisas/${nova.id}`)
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Erro ao criar pesquisa')
@@ -123,6 +169,8 @@ export default function PesquisasPage() {
       setTimeout(() => setCopiedId(null), 2000)
     })
   }
+
+  const camposImportados = baseSchema?.campos?.length ?? 0
 
   return (
     <div className="p-6 space-y-4">
@@ -218,12 +266,12 @@ export default function PesquisasPage() {
       </div>
 
       {/* Modal criar */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Pesquisa de Opinião</DialogTitle>
             <DialogDescription>
-              Após criar, você poderá adicionar as perguntas e publicar o link público.
+              Após criar, você poderá editar as perguntas e publicar o link público.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -245,10 +293,46 @@ export default function PesquisasPage() {
                 placeholder="Objetivo da pesquisa..."
               />
             </div>
+
+            {/* Importar de formulário */}
+            <div className="space-y-1.5">
+              <Label>Importar perguntas de um formulário <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <Select value={baseFormId} onValueChange={setBaseFormId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Criar do zero..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Criar do zero</SelectItem>
+                  {formularios.map(f => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.diretoria?.secretaria?.sigla
+                        ? `[${f.diretoria.secretaria.sigla}] `
+                        : ''}
+                      {f.titulo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {loadingSchema && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />Carregando perguntas...
+                </p>
+              )}
+              {baseFormId && !loadingSchema && camposImportados > 0 && (
+                <p className="text-xs text-green-600 font-medium">
+                  ✓ {camposImportados} pergunta{camposImportados !== 1 ? 's' : ''} serão importadas
+                </p>
+              )}
+              {baseFormId && !loadingSchema && camposImportados === 0 && (
+                <p className="text-xs text-amber-600">
+                  Este formulário não possui perguntas ainda.
+                </p>
+              )}
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={create} disabled={saving || !titulo.trim()}>
+            <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancelar</Button>
+            <Button onClick={create} disabled={saving || !titulo.trim() || loadingSchema}>
               {saving ? 'Criando...' : 'Criar e editar'}
             </Button>
           </DialogFooter>
