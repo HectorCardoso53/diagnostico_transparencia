@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Eye, Plus, Trash2, ChevronDown, ChevronRight, Building2, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -90,6 +91,7 @@ function agrupar(items: Resposta[]) {
 }
 
 export default function RespostasPage() {
+  const { user } = useAuth()
   const [items, setItems]       = useState<Resposta[]>([])
   const [formularios, setFormularios] = useState<Formulario[]>([])
   const [diretorias, setDiretorias]   = useState<DiretoriaOpcao[]>([])
@@ -257,7 +259,7 @@ export default function RespostasPage() {
                               {respostas.map((r) => (
                                 <tr key={r.id} className="hover:bg-muted/20">
                                   <td className="px-4 py-2.5 font-medium">{r.formulario?.titulo ?? '—'}</td>
-                                  <td className="px-4 py-2.5 text-muted-foreground">{r.usuario?.nome ?? '—'}</td>
+                                  <td className="px-4 py-2.5 text-muted-foreground">{user?.nome ?? '—'}</td>
                                   <td className="px-4 py-2.5">
                                     <Badge variant={STATUS_VARIANT[r.status] ?? 'secondary'} className="text-[11px]">
                                       {STATUS_LABEL[r.status] ?? r.status}
