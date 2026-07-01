@@ -186,9 +186,11 @@ export default function RespostasPage() {
           <h1 className="text-2xl font-bold">Respostas</h1>
           <p className="text-sm text-muted-foreground mt-1">{items.length} resposta{items.length !== 1 ? 's' : ''}</p>
         </div>
-        <Button onClick={() => { setForm({ form_id: '', diretoria_id: '' }); setOpen(true) }} size="sm">
-          <Plus className="h-4 w-4 mr-1" />Nova resposta
-        </Button>
+        {['SUPER_ADMIN', 'ADMIN', 'SECRETARIO'].includes(user?.role ?? '') && (
+          <Button onClick={() => { setForm({ form_id: '', diretoria_id: '' }); setOpen(true) }} size="sm">
+            <Plus className="h-4 w-4 mr-1" />Nova resposta
+          </Button>
+        )}
       </div>
 
       {grupos.length === 0 && (
