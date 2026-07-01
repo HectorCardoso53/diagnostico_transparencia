@@ -150,9 +150,13 @@ export class RespostasService {
   ) {
     const r = await this.assertExists(id);
 
-    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO];
-    if (!adminRoles.includes(user.role) && r.user_id !== user.id)
-      throw new ForbiddenException('Você não é o autor desta resposta');
+    const editRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO];
+    const canEdit =
+      editRoles.includes(user.role) ||
+      r.user_id === user.id ||
+      (user.role === Role.DIRETOR && user.diretoria_id != null && user.diretoria_id === r.diretoria_id);
+    if (!canEdit)
+      throw new ForbiddenException('Sem permissão para editar esta resposta');
     if (r.status !== ResponseStatus.RASCUNHO)
       throw new BadRequestException(
         'Somente rascunhos podem ser editados',
@@ -167,9 +171,13 @@ export class RespostasService {
   async enviar(id: string, user: CurrentUser) {
     const r = await this.assertExists(id);
 
-    const adminRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO];
-    if (!adminRoles.includes(user.role) && r.user_id !== user.id)
-      throw new ForbiddenException('Você não é o autor desta resposta');
+    const sendRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.SECRETARIO];
+    const canSend =
+      sendRoles.includes(user.role) ||
+      r.user_id === user.id ||
+      (user.role === Role.DIRETOR && user.diretoria_id != null && user.diretoria_id === r.diretoria_id);
+    if (!canSend)
+      throw new ForbiddenException('Sem permissão para enviar esta resposta');
     if (r.status !== ResponseStatus.RASCUNHO)
       throw new BadRequestException(
         'Somente rascunhos podem ser enviados',
@@ -229,11 +237,11 @@ export class RespostasService {
     if (user.role === Role.SECRETARIO) return;
     if (user.role === Role.OPERADOR && r.user_id !== user.id)
       throw new ForbiddenException('Sem permissão para visualizar esta resposta');
-    if (
-      user.role === Role.DIRETOR &&
-      user.diretoria_id !== r.diretoria_id
-    )
+    if (user.role === Role.DIRETOR) {
+      if (r.user_id === user.id) return;
+      if (user.diretoria_id && user.diretoria_id === r.diretoria_id) return;
       throw new ForbiddenException('Sem permissão para visualizar esta resposta');
+    }
   }
 
   private assertRevisaoAccess(

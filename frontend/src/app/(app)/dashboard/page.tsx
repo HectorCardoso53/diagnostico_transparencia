@@ -11,6 +11,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -95,6 +96,7 @@ function buildBarFormularios(formularios: FormularioItem[]) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { user } = useAuth()
   const [stats, setStats] = useState<Stats>({
     secretarias: null, diretorias: null,
     usuarios: null, formularios: null,
@@ -110,8 +112,9 @@ export default function DashboardPage() {
     api.get<{ id: string }[]>('/diretorias?ativo=true')
       .then((d) => setStats((s) => ({ ...s, diretorias: d.length }))).catch(() => {})
 
-    api.get<{ id: string }[]>('/usuarios?ativo=true')
-      .then((d) => setStats((s) => ({ ...s, usuarios: d.length }))).catch(() => {})
+    if (['SUPER_ADMIN', 'ADMIN', 'SECRETARIO'].includes(user?.role ?? ''))
+      api.get<{ id: string }[]>('/usuarios?ativo=true')
+        .then((d) => setStats((s) => ({ ...s, usuarios: d.length }))).catch(() => {})
 
     api.get<FormularioItem[]>('/formularios')
       .then((d) => {
@@ -128,7 +131,7 @@ export default function DashboardPage() {
           respondidos: d.filter((r) => r.status !== 'RASCUNHO').length,
         }))
       }).catch(() => {})
-  }, [])
+  }, [user])
 
   const { anos, data: linhaData } = buildLinhaAnual(respostas)
   const pieData = buildPieRespostas(respostas)
