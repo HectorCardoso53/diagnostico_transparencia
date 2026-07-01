@@ -274,7 +274,7 @@ export default function ResultadosPage() {
                           cx="50%"
                           cy="50%"
                           outerRadius={75}
-                          label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}
+                          label={({ name, percent }) => `${name} ${Math.round((percent ?? 0) * 100)}%`}
                           labelLine={false}
                           fontSize={10}
                         >
@@ -312,10 +312,10 @@ export default function ResultadosPage() {
                     <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 12 }} />
                     <Tooltip
                       contentStyle={{ fontSize: 12 }}
-                      formatter={(v: number) => [
-                        `${v} (${total > 0 ? Math.round((v / total) * 100) : 0}%)`,
-                        'Respostas',
-                      ]}
+                      formatter={(v) => {
+                        const n = Number(v ?? 0)
+                        return [`${n} (${total > 0 ? Math.round((n / total) * 100) : 0}%)`, 'Respostas']
+                      }}
                     />
                     <Bar dataKey="total" radius={[0, 4, 4, 0]}>
                       {data.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
